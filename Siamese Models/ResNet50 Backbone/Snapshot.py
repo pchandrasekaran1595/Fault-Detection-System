@@ -19,6 +19,7 @@ def capture_snapshot(device_id=0, part_name=None, roi_extractor=None):
         os.makedirs(path)
         file = open(os.path.join(os.path.join(u.DATASET_PATH, part_name), "Box.txt"), "w")
 
+    # Initialize the capture object
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(device_id)
     else:
@@ -28,6 +29,8 @@ def capture_snapshot(device_id=0, part_name=None, roi_extractor=None):
     cap.set(cv2.CAP_PROP_FPS, u.FPS)
     
     count = 1
+
+    # Read data from capture object
     while cap.isOpened():
         _, frame = cap.read()
         frame = u.clahe_equ(frame)
@@ -37,8 +40,10 @@ def capture_snapshot(device_id=0, part_name=None, roi_extractor=None):
         d_frame = u.process(d_frame, x1, y1, x2, y2)
         d_frame = np.hstack((frame, d_frame))
 
+        # Display the frame
         cv2.imshow("Feed", d_frame)
 
+        # Press 'c' to Capture frame
         if cv2.waitKey(u.DELAY) == ord("c"):
             print("")
             cv2.imwrite(os.path.join(path, "Snapshot_{}.png".format(count)), frame)
@@ -46,10 +51,13 @@ def capture_snapshot(device_id=0, part_name=None, roi_extractor=None):
             print("Captured Snapshot - {}".format(count))
             count += 1
 
+        # Press 'q' to Quit
         if cv2.waitKey(u.DELAY) == ord("q"):
             break
     
     file.close()
+
+    # Release the capture object and destroy all windows
     cap.release()
     cv2.destroyAllWindows()
 

@@ -33,6 +33,8 @@ class VideoFrame(tk.Frame):
         self.frame = None
         self.image = None
         self.id = None
+
+        # Delay telling how often to refresh the frame
         self.delay = 15
 
      # Function to start the Video Capture

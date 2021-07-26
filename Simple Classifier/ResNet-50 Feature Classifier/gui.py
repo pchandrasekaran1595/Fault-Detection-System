@@ -86,6 +86,7 @@ def __help__(frame=None, model=None, fea_extractor=None, show_prob=True, pt1=Non
                             color=u.GUI_RED, thickness=2)
     return disp_frame
 
+# ******************************************************************************************************************** #
 
 class Video(object):
     def __init__(self, id=None, width=None, height=None, fps=None):

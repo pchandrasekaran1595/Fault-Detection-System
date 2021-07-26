@@ -5,6 +5,7 @@ import utils as u
 
 # ******************************************************************************************************************** #
 
+# Dataset Template used for Feature Extraction
 class FEDS(Dataset):
     def __init__(self, X=None, transform=None):
         self.transform = transform
@@ -18,6 +19,7 @@ class FEDS(Dataset):
 
 # ******************************************************************************************************************** #
 
+# Dataset Template used to generate data that can be passed to the Siamese Network
 class SiameseDS(Dataset):
     def __init__(self, anchor=None, p_vector=None, n_vector=None):
         self.anchor = anchor

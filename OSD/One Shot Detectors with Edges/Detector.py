@@ -9,7 +9,7 @@ import utils as u
 
 # ******************************************************************************************************************** #
 
-# Function to normalize values in a vector of length 'n' to min:0 and Max:1
+# Normalize the vector to a min-max of [0, 1]
 def normalize(x):
     for i in range(x.shape[0]):
         x[i] = (x[i] - torch.min(x[i])) / (torch.max(x[i]) - torch.min(x[i]))
@@ -22,9 +22,6 @@ def build_model():
     class Model(nn.Module):
         def __init__(self):
             super(Model, self).__init__()
-
-            # Size of Image expected by the model
-            self.size = 224
 
             # Device on which to run inference on. (This is now platform aware; will choose NVIDIA GPU if present, else will run on CPU)
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -80,7 +77,7 @@ def CosineDetector(image):
     model = build_model()
     criterion = nn.CosineSimilarity(dim=1, eps=1e-8)
     
-    # Setting up the capture object
+    # Initialize the capture object
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(u.ID)
     else:
@@ -119,7 +116,7 @@ def CosineDetector(image):
         if cv2.waitKey(1) == ord("q"):
             break
     
-    # Release capture object and destroy all windows
+    # Release the capture object and destroy all windows
     cap.release()
     cv2.destroyAllWindows()
 

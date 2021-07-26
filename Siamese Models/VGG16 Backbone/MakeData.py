@@ -13,6 +13,7 @@ import utils as u
 
 # ******************************************************************************************************************** #
 
+# Augmentation Pipeline
 def get_augments(augment_seed=None): 
     imgaug.seed(entropy=augment_seed)
     dataset_augment = augmenters.Sequential([
@@ -36,7 +37,7 @@ def get_augments(augment_seed=None):
     ])
 
     imgaug.seed(entropy=augment_seed)
-    roi_augment = augmenters.Sequential([augmenters.imgcorruptlike.GlassBlur(severity=(3, 5), seed=augment_seed)] * 3)
+    roi_augment = augmenters.Sequential([augmenters.imgcorruptlike.GlassBlur(severity=5, seed=augment_seed)])
 
     return dataset_augment, roi_augment
 
@@ -48,8 +49,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
     if not os.path.exists(cls_path):
         os.makedirs(cls_path)
     f_names = os.listdir(cls_path)
-
-
+    
     r.seed(u.SEED)
 
     # len(f_names) == 0 occurs during first run of the program when there are no images in the Negative directory.

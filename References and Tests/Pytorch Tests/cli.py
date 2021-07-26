@@ -27,6 +27,7 @@ def app():
     # Default CLI Argument Values
     do_classify, do_detect, do_segment, do_all = None, None, None, None
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         do_classify = True
     if args_2 in sys.argv:
@@ -91,7 +92,7 @@ def app():
         if cv2.waitKey(1) == ord("q"):
             break
     
-    # Release capture object and destroy all windows
+    # Release the capture object and destroy all windows
     cap.release()
     cv2.destroyAllWindows()
 

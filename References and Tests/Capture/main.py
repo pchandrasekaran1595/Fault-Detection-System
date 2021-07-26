@@ -1,5 +1,5 @@
 """
-    Entry point into the Application.
+    Entry Point into the Application.
     
     Simple script to capture images from the webcam. Specify --nogui if gui is not needed.
 """
@@ -11,6 +11,9 @@ import gui
 # ******************************************************************************************************************** #
 
 def main():
+    cli.breaker()
+    cli.myprint("\t   --- Application Start ---", color="green")
+
     args = "--nogui"
 
     do_gui = True
@@ -21,6 +24,10 @@ def main():
         gui.app()
     else:
         cli.app()
+    
+    cli.breaker()
+    cli.myprint("\t   --- Application End ---", color="green")
+    cli.breaker()
 
 # ******************************************************************************************************************** #
 

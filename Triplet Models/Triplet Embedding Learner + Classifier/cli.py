@@ -20,6 +20,7 @@ def app():
     args_6 = "--upper"
     args_7 = "--id"
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         u.num_samples = int(sys.argv[sys.argv.index(args_1) + 1])
     if args_2 in sys.argv:

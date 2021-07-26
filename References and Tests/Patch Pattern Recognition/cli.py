@@ -28,6 +28,7 @@ def app():
     do_capture, do_process = None, None
     similarity = 0.8
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         p_name = sys.argv[sys.argv.index(args_1) + 1]
     if args_2 in sys.argv:

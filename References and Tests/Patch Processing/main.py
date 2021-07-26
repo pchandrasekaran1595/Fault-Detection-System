@@ -1,5 +1,5 @@
 """
-    Entry point into the Application
+    Entry Point into the Application
 """
 
 import sys

@@ -1,9 +1,13 @@
 import sys
 import cli
 import gui
+import utils as u
 
 
 def main():
+    u.breaker()
+    u.myprint("\t   --- Application Start ---", color="green")
+
     args = "--gui"
     with_gui = False
     if args in sys.argv:
@@ -13,6 +17,10 @@ def main():
         gui.app()
     else:
         cli.app()
+
+    u.breaker()
+    u.myprint("\t   --- Application End ---", color="green")
+    u.breaker()
 
 
 if __name__ == "__main__":

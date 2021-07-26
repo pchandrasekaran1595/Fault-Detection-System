@@ -38,6 +38,7 @@ def app():
     distance = 32
     similarity = 0.85
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         do_capture = True
 

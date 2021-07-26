@@ -6,22 +6,25 @@ import os
 import cv2
 from termcolor import colored
 
-# Linebreaker to improve readability of output. Can be used wherever necessary.
-os.system("color")
-def breaker(num=50, char='*'):
-    print(colored("\n" + num*char + "\n", color="red"))
+# LineBreaker
+def breaker(num=50, char="*"):
+    print(colored("\n" + num*char + "\n", color="magenta"))
 
 
-# CLAHE Equalization handler
-def clahe_equ(image, clipLimit=2.0, TGS=2):
-    n_img = image.copy()
-    clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=(TGS, TGS))
+# Custom Print Function
+def myprint(text, color, on_color=None):
+    print(colored(text, color=color, on_color=on_color))
+
+
+# CLAHE Preprocessing (Cliplimit: 2.0, TileGridSize: (2, 2))
+def clahe_equ(image):
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(2, 2))
     for i in range(3):
-        n_img[:, :, i] = clahe.apply(n_img[:, :, i])
-    return n_img
+        image[:, :, i] = clahe.apply(image[:, :, i])
+    return image
 
 
-# Center Crop Preprocessing (Reshape to 256x256, then center crop to 224x224)
+# Center Crop (Resize to 256x256, then center crop the 224x224 region)
 def preprocess(image, change_color_space=True):
     if change_color_space:
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)

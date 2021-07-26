@@ -16,17 +16,6 @@ class RoIExtractor(nn.Module):
 
 # ******************************************************************************************************************** #
 
-# class FeatureExtractor(nn.Module):
-#     def __init__(self):
-#         nn.Module.__init__(self)
-        
-#         self.model = models.resnet50(pretrained=True, progress=True)
-#         self.model = nn.Sequential(*[*self.model.children()][:-1])
-#         self.model.add_module("Flatten", nn.Flatten())
-
-#     def forward(self, x):
-#         return self.model(x)
-
 class FeatureExtractor(nn.Module):
     def __init__(self):
         nn.Module.__init__(self)

@@ -31,7 +31,7 @@ class Video(object):
         self.fps = fps
         self.cap = None
     
-    # Setting up the capture object
+    # Initialize the capture object
     def start(self):
         if platform.system() != "Windows":
             self.cap = cv2.VideoCapture(self.device_id)
@@ -170,6 +170,7 @@ def app():
     w = 640
     h = 360
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         device_id = int(sys.argv[sys.argv.index(args_1) + 1])
     if args_2 in sys.argv:

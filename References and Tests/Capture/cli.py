@@ -11,11 +11,18 @@ SAVE_PATH = os.path.join(os.getcwd(), "Captures")
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
-# Linebreaker to improve readability of output. Can be used wherever necessary.
+
+# Custom Print Function
+def myprint(text, color, on_color=None):
+    print(colored(text, color=color, on_color=on_color))
+
+
+# Linebreaker
 def breaker(num=50, char="*"):
     print(colored("\n" + num*char + "\n", color="cyan"))
 
-# Setting up capture object
+
+# Initialize the capture object
 def init_video(ID, w, h):
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(ID)
@@ -84,6 +91,7 @@ def app():
     w = 640
     h = 360
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         device_id = int(sys.argv[sys.argv.index(args_1) + 1])
     if args_2 in sys.argv:

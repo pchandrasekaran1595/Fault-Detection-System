@@ -58,15 +58,20 @@ def __help__(frame=None, model=None, fea_extractor=None, show_prob=True, pt1=Non
 
 # ******************************************************************************************************************** #
 
+# Realtime Inference
 def realtime(device_id=None, part_name=None, model=None, save=False, fea_extractor=None, show_prob=False):
     base_path = os.path.join(u.DATASET_PATH, part_name)
 
+    # Read the anchor image
     disp_anchor_image = cv2.imread(os.path.join(os.path.join(base_path, "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR)
+
+    # Load the model
     path = os.path.join(os.path.join(base_path, "Checkpoints"), "State.pt")
     model.load_state_dict(torch.load(path, map_location=u.DEVICE)["model_state_dict"])
     model.eval()
     model.to(u.DEVICE)
 
+    # Initialize the capture object
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(device_id)
     else:
@@ -75,17 +80,22 @@ def realtime(device_id=None, part_name=None, model=None, save=False, fea_extract
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, u.CAM_WIDTH)
     cap.set(cv2.CAP_PROP_FPS, u.FPS)
 
+    # Save a video file if flag is set
     if save:
         filename = os.path.join(base_path, "{}.mp4".format(part_name))
         codec = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(filename, codec, 30.01, (2*u.camWidth, u.camHeight))
 
+    # Open the file containing reference box coordinates
     file = open(os.path.join(base_path, "Box.txt"), "r")
     data = file.read().split(",")
     file.close()
+
     countp, countn = len(os.listdir(os.path.join(base_path, "Positive"))), len(os.listdir(os.path.join(base_path, "Negative"))) + 1
     if countn == 0:
         countn = 1
+    
+    # read data from capture object
     while cap.isOpened():
         _, frame = cap.read()
         frame = u.clahe_equ(frame)
@@ -115,7 +125,10 @@ def realtime(device_id=None, part_name=None, model=None, save=False, fea_extract
         if save:
             out.write(disp_frame)
         
+        # Display the frame
         cv2.imshow("Feed", disp_frame)
+
+        # Press 'q' to Quit
         if cv2.waitKey(u.DELAY) == ord("q"):
             break
 
@@ -125,10 +138,14 @@ def realtime(device_id=None, part_name=None, model=None, save=False, fea_extract
 
 # ******************************************************************************************************************** #
 
+# Inference performed on video file
 def video(filename=None, part_name=None, model=None, save=False, fea_extractor=None, show_prob=True):
     base_path = os.path.join(u.DATASET_PATH, part_name)
 
+    # Read the anchor image
     disp_anchor_image = cv2.imread(os.path.join(os.path.join(base_path, "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR)
+
+    # Load the model
     path = os.path.join(os.path.join(base_path, "Checkpoints"), "State.pt")
     model.load_state_dict(torch.load(path, map_location=u.DEVICE)["model_state_dict"])
     model.eval()
@@ -142,14 +159,25 @@ def video(filename=None, part_name=None, model=None, save=False, fea_extractor=N
         filename = os.path.join(base_path, "{}.mp4".format(part_name))
         codec = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(filename, codec, 30.01, (2*u.camWidth, u.camHeight))
+    
+    # Open the file containing reference box coordinates
+    file = open(os.path.join(base_path, "Box.txt"), "r")
+    data = file.read().split(",")
+    file.close()
 
-    countp, countn = 1, 1
+    countp, countn = len(os.listdir(os.path.join(base_path, "Positive"))), len(os.listdir(os.path.join(base_path, "Negative"))) + 1
+    if countn == 0:
+        countn = 1
+
+    # Read data from capture object
     while cap.isOpened():
         ret, frame = cap.read()
 
         if ret:
             # Perform Inference
-            disp_frame = __help__(frame=frame, model=model, fea_extractor=fea_extractor, show_prob=show_prob)
+            disp_frame = __help__(frame=frame, model=model, 
+                                  fea_extractor=fea_extractor, show_prob=show_prob, 
+                                  pt1=(data[0], data[1]), pt2=(data[2], data[3]))
             
             # ********************************************************************* #
 
@@ -173,10 +201,12 @@ def video(filename=None, part_name=None, model=None, save=False, fea_extractor=N
             if save:
                 out.write(disp_frame)
             
+            # Display the frame
             cv2.imshow("Feed", disp_frame)
+
+            # Press 'q' to Quit
             if cv2.waitKey(u.DELAY) == ord("q"):
                 break
-        
         else:
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 

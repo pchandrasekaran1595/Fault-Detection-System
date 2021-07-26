@@ -34,6 +34,7 @@ def app():
     name = "Snapshot_1.png"
     clipLimit = 2.0
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         do_capture = True
     if args_2 in sys.argv:
@@ -54,7 +55,7 @@ def app():
     # Runs if --triplet is specified
     if do_triplet:
         try:
-            image = cv2.cvtColor(src=cv2.imread(os.path.join(u.IMAGE_PATH, name)), code=cv2.COLOR_BGR2RGB)
+            image = u.preprocess(cv2.imread(os.path.join(u.IMAGE_PATH, name), cv2.IMREAD_COLOR))
             TripletDetector(image, margin, clipLimit)
         except:
             u.breaker()
@@ -66,7 +67,7 @@ def app():
     # Runs if --cosine is specifier
     if do_cosine:
         try:
-            image = cv2.cvtColor(src=cv2.imread(os.path.join(u.IMAGE_PATH, name)), code=cv2.COLOR_BGR2RGB)
+            image = u.preprocess(cv2.imread(os.path.join(u.IMAGE_PATH, name), cv2.IMREAD_COLOR))
             CosineDetector(image, clipLimit)
         except:
             u.breaker()

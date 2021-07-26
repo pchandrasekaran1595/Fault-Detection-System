@@ -1,13 +1,21 @@
 """
-    Entry point into the Application
+    Entry Point into the Application
 """
 
 import sys
-import sys
 import cli
+import utils as u
+
 
 def main():
+    u.breaker()
+    u.myprint("\t   --- Application Start ---", color="green")
+
     cli.app()
+    
+    u.breaker()
+    u.myprint("\t   --- Application End ---", color="green")
+    u.breaker()
 
 
 if __name__ == "__main__":

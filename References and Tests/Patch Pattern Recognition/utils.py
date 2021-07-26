@@ -7,23 +7,25 @@ import cv2
 from termcolor import colored
 
 os.system("color")
+# LineBreaker
+def breaker(num=50, char="*"):
+    print(colored("\n" + num*char + "\n", color="magenta"))
+
+
+# Custom Print Function
 def myprint(text, color, on_color=None):
     print(colored(text, color=color, on_color=on_color))
 
 
-# Linebreaker to improve readability of output. Can be used wherever necessary.
-def breaker(num=50, char="*"):
-    print(colored("\n" + num*char + "\n", color="blue"))
+# CLAHE Preprocessing (Cliplimit: 2.0, TileGridSize: (2, 2))
+def clahe_equ(image):
+    clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(2, 2))
+    for i in range(3):
+        image[:, :, i] = clahe.apply(image[:, :, i])
+    return image
 
 
-# Settiing up self-aware Image Directory
-IMAGE_PATH = os.path.join(os.getcwd(), "Images")
-if not os.path.exists(IMAGE_PATH):
-    os.makedirs(IMAGE_PATH)
-event_handler_path = None
-
-
-# Center Crop Preprocessing (Reshape to 256x256, then center crop to 224x224)
+# Center Crop (Resize to 256x256, then center crop the 224x224 region)
 def preprocess(image, change_color_space=True):
     if change_color_space:
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
@@ -31,6 +33,14 @@ def preprocess(image, change_color_space=True):
     h, w, _ = image.shape
     cx, cy = w // 2, h // 2
     return image[cy - 112:cy + 112, cx - 112:cx + 112, :]
+
+
+
+# Settiing up self-aware Image Directory
+IMAGE_PATH = os.path.join(os.getcwd(), "Images")
+if not os.path.exists(IMAGE_PATH):
+    os.makedirs(IMAGE_PATH)
+event_handler_path = None
 
 
 # Webcam Feed Attributes
