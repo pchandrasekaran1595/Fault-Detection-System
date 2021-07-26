@@ -17,7 +17,7 @@ def ml_compare(image, nfeatures, distance=32):
         distance  : (float) Hamming Distance for Brute Force Matching. (Set via the command line)
     """
 
-    # Setting up the capture object
+    # Initialize the capture object
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(u.ID)
     else:
@@ -83,7 +83,7 @@ def dl_compare(image, similarity):
         similarity : (float) Cosine Similarity Threshold [0, 1]. (Set via the command line)
     """
 
-    # Setting up the capture object
+    # Initialize the capture object
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(u.ID)
     else:
@@ -96,7 +96,7 @@ def dl_compare(image, similarity):
     model, criterion = build_model()
 
     # Obtain the features from the image file
-    features_1 = model.get_features(cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB))
+    features_1 = model.get_features(u.preprocess(image))
 
     # Read data from capture object
     while cap.isOpened():

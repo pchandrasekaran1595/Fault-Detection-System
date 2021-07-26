@@ -12,6 +12,7 @@ import utils as u
 
 # ******************************************************************************************************************** #
 
+# Augmentation Pipeline
 def get_augments(augment_seed=None): 
     imgaug.seed(entropy=augment_seed)
     dataset_augment = augmenters.Sequential([

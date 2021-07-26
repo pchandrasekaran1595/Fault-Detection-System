@@ -19,6 +19,7 @@ class VideoFrame(tk.Frame):
         self.canvas = tk.Canvas(self, width=u.CAM_WIDTH, height=u.CAM_HEIGHT, background="black")
         self.canvas.pack()
 
+        # Delay telling how often to update the frame
         self.delay = 15
         self.id = None
     

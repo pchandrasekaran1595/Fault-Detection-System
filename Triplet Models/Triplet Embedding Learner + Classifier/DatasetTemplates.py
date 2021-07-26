@@ -4,6 +4,7 @@ from torch.utils.data import Dataset
 
 # ******************************************************************************************************************** #
 
+# Dataset Template used for Feature Extraction
 class FEDS(Dataset):
     def __init__(self, X=None, transform=None):
         self.transform = transform
@@ -17,6 +18,7 @@ class FEDS(Dataset):
 
 # ******************************************************************************************************************** #
 
+# Dataset Template used to generate data that can be passed to the Triplet Embedder Learner
 class TripletDS(Dataset):
     def __init__(self, anchor, p_vector, n_vector):
             self.anchor = anchor
@@ -32,6 +34,7 @@ class TripletDS(Dataset):
 
 # ******************************************************************************************************************** #
 
+# Dataset Template used to generate data that can be passed to the Classifier
 class DS(Dataset):
         def __init__(self, p_vector=None, n_vector=None):
             self.X = np.concatenate((p_vector, n_vector), axis=0)

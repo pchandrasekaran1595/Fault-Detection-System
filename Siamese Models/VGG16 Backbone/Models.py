@@ -25,8 +25,6 @@ class FeatureExtractor(nn.Module):
         self.model.add_module("Adaptive Avg Pool", nn.AdaptiveAvgPool2d(output_size=(2, 2)))
         self.model.add_module("Flatten", nn.Flatten())
 
-        # To obtain even better features, dont use AAP. use the vector of length 25088.
-
     def forward(self, x):
         return self.model(x)
 

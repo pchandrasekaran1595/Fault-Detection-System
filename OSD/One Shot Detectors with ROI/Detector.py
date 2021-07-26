@@ -8,7 +8,7 @@ import utils as u
 
 # ******************************************************************************************************************** #
 
-# Function to normalize values in a vector of length 'n' to min:0 and Max:1
+# Normalize the vector to a min-max of [0, 1]
 def normalize(x):
     for i in range(x.shape[0]):
         x[i] = (x[i] - torch.min(x[i])) / (torch.max(x[i]) - torch.min(x[i]))
@@ -116,7 +116,7 @@ def CosineDetector(image, clipLimit):
     fea_extractor, roi_extractor = build_models()
     criterion = nn.CosineSimilarity(dim=1, eps=1e-8)
     
-    # Setting up the capture object
+    # Initialize the capture object
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(u.ID)
     else:
@@ -164,7 +164,7 @@ def CosineDetector(image, clipLimit):
         if cv2.waitKey(1) == ord("q"):
             break
         
-    # Release capture object and destroy all windows
+    # Release the capture object and destroy all windows
     cap.release()
     cv2.destroyAllWindows()
 

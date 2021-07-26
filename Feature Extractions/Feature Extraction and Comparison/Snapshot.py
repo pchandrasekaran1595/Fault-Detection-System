@@ -41,7 +41,7 @@ def capture_snapshot():
             break
     u.breaker()
     
-    # Release capture cbject and destory all windows
+    # Release capture object and destory all windows
     cap.release()
     cv2.destroyAllWindows()
 

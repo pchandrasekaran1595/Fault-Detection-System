@@ -1,3 +1,7 @@
+"""
+    Entry Point into the Application
+"""
+
 import sys
 import cli
 import gui

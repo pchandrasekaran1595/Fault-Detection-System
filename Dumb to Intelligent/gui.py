@@ -82,6 +82,7 @@ def __help__(frame=None, model=None, show_prob=True, fea_extractor=None):
             #               color=u.GUI_RED, thickness=2)
     return disp_frame
 
+# ******************************************************************************************************************** #
 
 class Video(object):
     def __init__(self, id=None, width=None, height=None, fps=None):
@@ -394,6 +395,7 @@ def app():
     args_5 = "--upper"
     args_6 = "--early"
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         u.num_samples = int(sys.argv[sys.argv.index(args_1) + 1])
     if args_2 in sys.argv:
@@ -416,6 +418,7 @@ def app():
     model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
     setup(model=model)
     
+    # Start
     root.mainloop()
 
 # ******************************************************************************************************************** #

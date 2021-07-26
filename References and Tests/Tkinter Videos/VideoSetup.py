@@ -16,7 +16,7 @@ class Video(object):
         self.fps = fps
         self.cap = None
     
-    # Setting up the capture object
+    # Initialize the capture object
     def start(self):
         if platform.system() != 'Windows':
             self.cap = cv2.VideoCapture(self.device_id)

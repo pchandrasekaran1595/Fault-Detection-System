@@ -17,8 +17,10 @@ def app():
     args_2 = "--ph"
     args_3 = "--test"
 
+    # Default CLI Arguments
     pw, ph, test = 48, 48, None
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         pw = int(sys.argv[sys.argv.index(args_1) + 1])
     if args_2 in sys.argv:

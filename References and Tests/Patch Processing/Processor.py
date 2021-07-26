@@ -18,7 +18,7 @@ def process_video_as_patches(pw, ph, test=None):
         3. --test : number indicating what test is to be performed (Can be specified via command line)
     """   
 
-    # Setting up capture object
+    # Initialize the capture object
     if platform.system() != "Windows":
         cap = cv2.VideoCapture(u.ID)
     else:

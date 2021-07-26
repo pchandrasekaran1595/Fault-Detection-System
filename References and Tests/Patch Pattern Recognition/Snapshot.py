@@ -99,7 +99,7 @@ def capture_snapshot(part_name=None):
             img_count = 1
             break
 
-    # Release capture object and destroy all windows
+    # Release the capture object and destroy all windows
     cap.release()
     cv2.destroyAllWindows()
 

@@ -66,7 +66,7 @@ def basic_tracker(nfeatures, K=5):
         if cv2.waitKey(1) == ord("q"):
             break
     
-    # Release capture object and destroy all windows
+    # Release the capture object and destroy all windows
     cap.release()
     cv2.destroyAllWindows()
 

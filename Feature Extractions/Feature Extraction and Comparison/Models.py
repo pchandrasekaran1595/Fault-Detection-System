@@ -1,15 +1,13 @@
 """
     Script that holds the Deep Learning Model. (Uses Pytorch)
 """
-
-import cv2
 import torch
 from torch import nn 
 from torchvision import models, transforms
 
 # ******************************************************************************************************************** #
 
-# Function to normalize values in a vector of length 'n' to min:0 and Max:1
+# Normalize the vector to a min-max of [0, 1]
 def normalize(x):
     for i in range(x.shape[0]):
         x[i] = (x[i] - torch.min(x[i])) / (torch.max(x[i]) - torch.min(x[i]))

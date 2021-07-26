@@ -42,7 +42,7 @@ def capture_snapshot(clipLimit):
             break
     u.breaker()
     
-    # Release capture object and destroy all windows
+    # Release the capture object and destroy all windows
     cap.release()
     cv2.destroyAllWindows()
 

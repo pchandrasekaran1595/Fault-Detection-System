@@ -41,14 +41,17 @@ device_id = 0
 early_stopping_step = 50
 # ******************************************************************************************************************** #
 
+# LineBreaker
 def breaker(num=50, char="*"):
     print(colored("\n" + num*char + "\n", color="magenta"))
 
 
+# Custom Print Function
 def myprint(text, color, on_color=None):
     print(colored(text, color=color, on_color=on_color))
 
 
+# CLAHE Preprocessing (Cliplimit: 2.0, TileGridSize: (2, 2))
 def clahe_equ(image):
     clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(2, 2))
     for i in range(3):
@@ -56,7 +59,7 @@ def clahe_equ(image):
     return image
 
 
-# Center Crop Preprocessing (Reshape to 256x256, then center crop to 224x224)
+# Center Crop (Resize to 256x256, then center crop the 224x224 region)
 def preprocess(image, change_color_space=True):
     if change_color_space:
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
@@ -67,6 +70,7 @@ def preprocess(image, change_color_space=True):
 
 # ******************************************************************************************************************** #
 
+# Obtain the bounding box coordinates.(Resized before it is returned)
 def get_box_coordinates(model, transform, image):
     x1, y1, x2, y2 = None, None, None, None
 
@@ -88,6 +92,7 @@ def get_box_coordinates(model, transform, image):
 
 # ******************************************************************************************************************** #
 
+# Obtain the bounding box coordinates. (Is not resized when returned)
 def get_box_coordinates_make_data(model, transform, image):
     x1, y1, x2, y2 = None, None, None, None
     temp_image = image.copy()
@@ -115,6 +120,7 @@ def process(image, x1, y1, x2, y2):
 
 # ******************************************************************************************************************** #
 
+# Normalize the vector to a min-max of [0, 1]
 def normalize(x):
     for i in range(x.shape[0]):
         x[i] = (x[i] - torch.min(x[i])) / (torch.max(x[i]) - torch.min(x[i]))
@@ -122,8 +128,8 @@ def normalize(x):
 
 # ******************************************************************************************************************** #
 
+# Extract the feature vector from a single image
 def get_single_image_features(model=None, transform=None, image=None):
-    image = cv2.resize(image, dsize=(SIZE, SIZE), interpolation=cv2.INTER_AREA)
     with torch.no_grad():
         features = model(transform(image).to(DEVICE).unsqueeze(dim=0))
     return normalize(features).detach().cpu().numpy()

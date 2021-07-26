@@ -17,9 +17,11 @@ def app():
     args_1 = "--capture"
     args_2 = "--name"
 
+    # Default CLI Arguments
     do_capture = False
     name = "Snapshot_1.png"
 
+    # CLI Argument Handling
     if args_1 in sys.argv:
         do_capture = True
     if args_2 in sys.argv:
