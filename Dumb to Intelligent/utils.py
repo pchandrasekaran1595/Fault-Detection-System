@@ -1,5 +1,6 @@
 import os
 import cv2
+import numpy as np
 import torch
 from torchvision import transforms, ops
 from termcolor import colored
@@ -128,7 +129,7 @@ def normalize(x):
 
 # ******************************************************************************************************************** #
 
-# Alpha Belding 2 images; image1 -> fg, image2 -> bg
+# Alpha Blending 2 images; image1 -> fg, image2 -> bg
 def alpha_blend(image1=None, image2=None, alpha=0.1):
     image1 = image1 / 255
     image2 = image2 / 255
