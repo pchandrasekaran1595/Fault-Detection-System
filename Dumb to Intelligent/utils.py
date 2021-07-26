@@ -128,6 +128,15 @@ def normalize(x):
 
 # ******************************************************************************************************************** #
 
+# Alpha Belding 2 images; image1 -> fg, image2 -> bg
+def alpha_blend(image1=None, image2=None, alpha=0.1):
+    image1 = image1 / 255
+    image2 = image2 / 255
+    image = (alpha * image1) + ((1-alpha) * image2)
+    return np.clip((image * 255), 0, 255).astype("uint8")
+
+# ******************************************************************************************************************** #
+
 # Extract the feature vector from a single image
 def get_single_image_features(model=None, transform=None, image=None):
     with torch.no_grad():

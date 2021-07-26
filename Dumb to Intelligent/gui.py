@@ -20,10 +20,12 @@ screen_resolution = (ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.use
 # ******************************************************************************************************************** #
 
 # Inference Helper
-def __help__(frame=None, model=None, show_prob=True, fea_extractor=None):
+def __help__(frame=None, anchor=None, model=None, show_prob=True, fea_extractor=None):
     disp_frame = frame.copy()
     h, w, _ = frame.shape
 
+    if anchor is not None:
+        disp_frame = u.alpha_blend(anchor, disp_frame, 0.15)
     frame = u.preprocess(frame, False)
     
     with torch.no_grad():
@@ -82,7 +84,6 @@ def __help__(frame=None, model=None, show_prob=True, fea_extractor=None):
             #               color=u.GUI_RED, thickness=2)
     return disp_frame
 
-# ******************************************************************************************************************** #
 
 class Video(object):
     def __init__(self, id=None, width=None, height=None, fps=None):
@@ -131,6 +132,7 @@ class VideoFrame(tk.Frame):
             self.model.load_state_dict(torch.load(self.model_path, map_location=u.DEVICE)["model_state_dict"])
             self.model.eval()
             self.model.to(u.DEVICE)
+            self.anchor = cv2.imread(os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR)
 
         self.canvas = tk.Canvas(self, width=u.CAM_WIDTH, height=u.CAM_HEIGHT, background="black")
         self.canvas.pack()
@@ -158,7 +160,7 @@ class VideoFrame(tk.Frame):
         else:
             if ret:
                 frame = u.clahe_equ(frame)
-                frame = __help__(frame=frame, model=self.model, 
+                frame = __help__(frame=frame, model=self.model, anchor=None,
                                  show_prob=False, fea_extractor=Models.fea_extractor)
                 self.image = ImageTk.PhotoImage(Image.fromarray(frame))
                 self.canvas.create_image(0, 0, anchor="nw", image=self.image)
@@ -395,7 +397,6 @@ def app():
     args_5 = "--upper"
     args_6 = "--early"
 
-    # CLI Argument Handling
     if args_1 in sys.argv:
         u.num_samples = int(sys.argv[sys.argv.index(args_1) + 1])
     if args_2 in sys.argv:
@@ -418,7 +419,6 @@ def app():
     model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
     setup(model=model)
     
-    # Start
     root.mainloop()
 
 # ******************************************************************************************************************** #
