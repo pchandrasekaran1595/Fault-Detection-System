@@ -1,0 +1,1 @@
+Performs One Shot Detection by comparing current frame with the (anchor) snapshot image using Cosine Similarity. Current Frame and Image snapshot are both preprocessed with edge detection using pixel gradients.
