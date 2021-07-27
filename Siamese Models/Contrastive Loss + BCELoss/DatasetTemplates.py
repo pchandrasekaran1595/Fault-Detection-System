@@ -19,6 +19,7 @@ class FEDS(Dataset):
 
 # ******************************************************************************************************************** #
 
+# Dataset Template used to generate data that can be passed to the Siamese Network
 class SiameseDS(Dataset):
     def __init__(self, anchors=None, p_vector=None, n_vector=None):
         self.anchors = anchors

@@ -172,13 +172,13 @@ def trainer(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_siz
         train_indices, valid_indices = tr_idx, va_idx
         break
 
+    # Consider all the images in the positive directory to be an anchor image. Generate Siamese Data for each image
     names = [name for name in os.listdir(os.path.join(os.path.join(base_path, "Positive"))) if name[-3:] == "png"]
-    print(names)
     anchors = []
     for name in names:
         anchors.append(u.get_single_image_features(fea_extractor, u.FEA_TRANSFORM, u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), name), cv2.IMREAD_COLOR))))
 
-    # Split the feature vectors inot Training and Validation Sets
+    # Split the feature vectors into Training and Validation Sets
     p_train, p_valid = p_features[train_indices], p_features[valid_indices]
     n_train, n_valid = n_features[train_indices], n_features[valid_indices]
 
