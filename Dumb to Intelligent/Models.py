@@ -79,8 +79,8 @@ def build_siamese_model(embed=None):
     else:
         model = None
 
-    lr = 1e-3
-    wd = 0
+    lr = 1e-6
+    wd = 1e-6
     batch_size = 512
 
     return model, batch_size, lr, wd
