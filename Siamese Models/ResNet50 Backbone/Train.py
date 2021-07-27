@@ -147,8 +147,19 @@ Valid Accs : {:.5f} | Time: {:.2f} seconds\n".format(e + 1,
 # ******************************************************************************************************************** #
 
 def trainer(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_size=None, early_stopping=None, fea_extractor=None):
+    """
+        part_name      : Part name
+        model          : Siamese Network
+        epochs         : Number of training epochs
+        lr             : Learning Rate
+        wd             : Weight Decay
+        batch_size     : Batch Size used during training
+        early_stopping : Number of epochs without improvement after which to stop training
+        fea_extractor  : Feature Extraction Model
+    """
     base_path = os.path.join(u.DATASET_PATH, part_name)
     
+    # Read the features (as saved in MakeData.py)
     p_features, n_features = np.load(os.path.join(base_path, "Positive_Features.npy")), np.load(os.path.join(base_path, "Negative_Features.npy"))
     p_shape, n_shape = p_features.shape[0], n_features.shape[0]
     
@@ -161,23 +172,31 @@ def trainer(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_siz
         train_indices, valid_indices = tr_idx, va_idx
         break
 
+    # Consider all the images in the positive directory to be an anchor image. Generate Siamese Data for each image
     names = [name for name in os.listdir(os.path.join(os.path.join(base_path, "Positive"))) if name[-3:] == "png"]
     anchors = []
     for name in names:
         anchors.append(u.get_single_image_features(fea_extractor, u.FEA_TRANSFORM, u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), name), cv2.IMREAD_COLOR))))
 
+    # Split the feature vectors into Training and Validation Sets
     p_train, p_valid = p_features[train_indices], p_features[valid_indices]
     n_train, n_valid = n_features[train_indices], n_features[valid_indices]
 
+    # Setup the training and validation dataloaders
     tr_data_setup = SiameseDS(anchors=anchors, p_vector=p_train, n_vector=n_train)
     va_data_setup = SiameseDS(anchors=anchors, p_vector=p_valid, n_vector=n_valid)
     tr_data = DL(tr_data_setup, batch_size=batch_size, shuffle=True, pin_memory=True, generator=torch.manual_seed(u.SEED), )
     va_data = DL(va_data_setup, batch_size=batch_size, shuffle=False, pin_memory=True)
+
+    # Setup the optimizer
     optimizer = model.getOptimizer(lr=lr, wd=wd)
 
+    # Setup the checkpoint directory
     checkpoint_path = os.path.join(os.path.join(u.DATASET_PATH, part_name), "Checkpoints")
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
+    
+    # Fit the model
     L, A, _, _ = fit_(model=model, optimizer=optimizer, scheduler=None, epochs=epochs,
                       early_stopping_patience=early_stopping, trainloader=tr_data, validloader=va_data, 
                       device=u.DEVICE, criterion=torch.nn.BCEWithLogitsLoss(),
@@ -191,7 +210,7 @@ def trainer(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_siz
         TA.append(A[i]["train"])
         VA.append(A[i]["valid"])
 
-    # Plots
+    # Plot relevant metrics
     x_Axis = np.arange(1, len(L)+1)
     plt.figure("Plots", figsize=(12, 6))
     plt.subplot(1, 2, 1)
@@ -204,7 +223,11 @@ def trainer(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_siz
     plt.plot(x_Axis, VA, "b", label="validation Accuracy")
     plt.legend()
     plt.grid()
+
+    # Save the plots for analysis
     plt.savefig(os.path.join(os.path.join(u.DATASET_PATH, part_name), "Graphs.jpg"))
+
+    # Close the figure
     plt.close(fig="Plots")
 
 # ******************************************************************************************************************** #
