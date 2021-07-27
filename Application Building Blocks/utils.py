@@ -5,7 +5,7 @@ from torchvision import transforms, ops
 from termcolor import colored
 os.system("color")
 
-# Self Aware dataset Directory
+# Self Aware Dataset Directory
 DATASET_PATH = os.path.join(os.getcwd(), "Datasets")
 if not os.path.exists(DATASET_PATH):
     os.makedirs(DATASET_PATH)
@@ -41,10 +41,10 @@ CLI_GREEN  = (0, 255, 0)
 embed_layer_size = 2048 # or 128 or 256 or .....
 num_samples = 10000 # or 15000 or 25000
 epochs = 1000
-lower_bound_confidence = 0.80 # or 0.85
+lower_bound_confidence = 0.80 # or 0.85 or 0.90 or 0.925
 upper_bound_confidence = 0.95 # or 0.975
 device_id = 0
-early_stopping_step = 250
+early_stopping_step = 50 # or 30 or 75 or 100
 # ******************************************************************************************************************** #
 
 # Linebreaker. Can be used wherever necessary
@@ -147,7 +147,7 @@ def process(image, x1, y1, x2, y2):
 
 # ******************************************************************************************************************** #
 
-# Function to normalize values in a vector of length 'n' to min:0 and Max:1
+# Normalize the vector to a min-max of [0, 1]
 def normalize(x):
     for i in range(x.shape[0]):
         x[i] = (x[i] - torch.min(x[i])) / (torch.max(x[i]) - torch.min(x[i]))

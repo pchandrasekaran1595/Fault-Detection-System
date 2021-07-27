@@ -2,7 +2,6 @@
     Entry Point into the Application
 """
 
-
 import sys
 import gui
 
