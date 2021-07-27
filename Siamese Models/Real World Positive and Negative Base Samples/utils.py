@@ -30,10 +30,10 @@ GUI_GREEN  = (0, 255, 0)
 
 # ****************************************** Default CLI Arguments *************************************************** #
 embed_layer_size = 2048
-num_samples = 15000
+num_samples = 1000
 epochs = 1000
-lower_bound_confidence = 0.7
-upper_bound_confidence = 0.8
+lower_bound_confidence = 0.95
+upper_bound_confidence = 0.99
 device_id = 0
 early_stopping_step = 50
 # ******************************************************************************************************************** #
