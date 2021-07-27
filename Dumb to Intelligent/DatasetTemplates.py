@@ -73,4 +73,3 @@ class SiameseDS(Dataset):
         return torch.FloatTensor(self.fullX[idx]), torch.FloatTensor(self.fully[idx])
 
 # ******************************************************************************************************************** #
-
