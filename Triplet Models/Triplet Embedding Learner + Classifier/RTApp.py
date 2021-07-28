@@ -103,7 +103,10 @@ def realtime(device_id=None, part_name=None, model=None, save=False, show_prob=F
     # Read data from capture object
     while cap.isOpened():
         _, frame = cap.read()
+        
+        # Apply CLAHE (2, 2) Preprocessing. May not be required once lighting issue is fixed
         frame = u.clahe_equ(frame)
+
         disp_frame = __help__(frame=frame, model=model, fea_extractor=fea_extractor, show_prob=show_prob, pt1=(data[0], data[1]), pt2=(data[2], data[3]))
         
         # ********************************************************************* #
@@ -175,6 +178,9 @@ def video(filename=None, part_name=None, model=None, save=False, show_prob=True,
         ret, frame = cap.read()
 
         if ret:
+            # Apply CLAHE (2, 2) Preprocessing. May not be required once lighting issue is fixed
+            frame = u.clahe_equ(frame)
+
             # Perform Inference
             disp_frame = __help__(frame=frame, model=model, 
                                   fea_extractor=fea_extractor, show_prob=show_prob, 

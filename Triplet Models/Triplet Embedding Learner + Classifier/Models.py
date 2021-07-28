@@ -1,10 +1,16 @@
-import os, torch
+"""
+    Models
+"""
+
+import os
+import torch
 from torchvision import models
 from torch import nn, optim
 import utils as u
 
 # ******************************************************************************************************************** #
 
+# Region-of-Interest Extractor (Object Detector)
 class RoIExtractor(nn.Module):
     def __init__(self):
         nn.Module.__init__(self)
@@ -31,6 +37,10 @@ class FeatureExtractor(nn.Module):
 
 # ******************************************************************************************************************** #
 
+"""
+    - Triplet Embedding Learner
+    - Expects a Triplet of Inputs (Anchor, Positive and Negative) during the training phase
+"""
 class EmbeddingNetwork(nn.Module):
     def __init__(self, IL=u.FEATURE_VECTOR_LENGTH, embed=None):
         super(EmbeddingNetwork, self).__init__()
@@ -54,6 +64,9 @@ class EmbeddingNetwork(nn.Module):
 
 # ******************************************************************************************************************** #
 
+"""
+    Classifier Network (Similarity Score Predictor)
+"""
 class Network(nn.Module):
     def __init__(self, embedding_net=None, embed=None):
         super(Network, self).__init__()
@@ -83,6 +96,7 @@ fea_extractor.eval()
 
 # ******************************************************************************************************************** #
 
+# Setup the Embedding Network
 def build_embedder(embed=None):
     if embed is not None:
         torch.manual_seed(u.SEED)
@@ -98,6 +112,7 @@ def build_embedder(embed=None):
 
 # ******************************************************************************************************************** #
 
+# Setup the Similarity Score Predictor Network
 def build_classifier(embedding_net=None, path=None, embed=None):
     if embed is not None:
         embedding_net.load_state_dict(torch.load(os.path.join(path, "embedder_state.pt"), map_location=u.DEVICE)["model_state_dict"])

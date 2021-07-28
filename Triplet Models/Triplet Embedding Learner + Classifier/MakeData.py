@@ -1,3 +1,7 @@
+"""
+    Dataset Creation
+"""
+
 import os
 import re
 import cv2
@@ -43,6 +47,15 @@ def get_augments(augment_seed=None):
 # ******************************************************************************************************************** #
 
 def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, fea_extractor=None, roi_extractor=None):
+    """
+        part_name : Part name
+        cls       : Class of the image (Either Negative or Positive)
+        num_samples : Number of Samples to be included in the Dataset
+        batch_size : Batch Size used by feature extracting dataloader
+        fea_extractor : Feature Extraction Model
+        roi_extractor : RoI Extraction Model
+    """
+
     base_path = os.path.join(u.DATASET_PATH, part_name)
     cls_path = os.path.join(base_path, cls)
     if not os.path.exists(cls_path):
@@ -51,48 +64,62 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
 
     r.seed(u.SEED)
 
-    # len(f_names) == 0 occurs during first run of the program when there are no images in the Negative directory.
-    # Extract ROI from the image, corrupt the ROI, put back the ROI into the image, This is the negative image used during the first run.
+    """ 
+        len(f_names) == 0 occurs during first run of the program when there are no images in the Negative directory.
+        Extract ROI from the image, corrupt the ROI, put back the ROI into the image, This is the negative image used during the first run.
+    """
     if len(f_names) == 0 and re.match(r"Negative", cls, re.IGNORECASE):
-        
-        # Get the augmentation pipeline
-        augment_seed = r.randint(0, 99)
-        dataset_augment, roi_augment = get_augments(augment_seed)
 
+        # Point to the Positive Directory
+        f_names = os.listdir(os.path.join(base_path, "Positive"))
+
+        # Calculate the number of samples needed for each image in the directory
+        num_samples_per_image = int(num_samples/len(f_names))
+
+        # Preallocate memory to hold features for each image in the directory
+        mini_features = torch.zeros(num_samples_per_image, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
         features = torch.zeros(1, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
+        for name in f_names:
 
-        # Read the first image in the Positive Directory
-        image = u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR))
+            # Get the augmentation pipeline
+            augment_seed = r.randint(0, 99)
+            dataset_augment, roi_augment = get_augments(augment_seed)
 
-        # Obtain the bounding box coordinates
-        x1, y1, x2, y2 = u.get_box_coordinates_make_data(roi_extractor, u.ROI_TRANSFORM, image)
+            # Read the image
+            image = u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), name), cv2.IMREAD_COLOR))
 
-        # Extract the ROI
-        crp_img = image[y1:y2, x1:x2]
+            # Obtain bounding box coordinates of the object
+            x1, y1, x2, y2 = u.get_box_coordinates_make_data(roi_extractor, u.ROI_TRANSFORM, image)
 
-        # Augment the ROI using the roi_augment pipeline
-        crp_img = roi_augment(images=np.expand_dims(crp_img, axis=0))
+            # Extract ROI
+            crp_img = image[y1:y2, x1:x2]
 
-        # Put back the RoI into the image
-        image[y1:y2, x1:x2] = crp_img.squeeze()
+            # Augment the ROI using the roi_augment pipeline
+            crp_img = roi_augment(images=np.expand_dims(crp_img, axis=0))
 
-        # Augment the entire dataset using the dataset_augment pipeline
-        images = np.array(dataset_augment(images=[image for _ in range(num_samples)]))
+            # Put back the RoI into the image
+            image[y1:y2, x1:x2] = crp_img.squeeze()
 
-        # Setup the feature extraction dataloader
-        feature_data_setup = FEDS(X=images, transform=u.FEA_TRANSFORM)
-        feature_data = DL(feature_data_setup, batch_size=batch_size, shuffle=False)
+            # Augment the entire dataset using the dataset_augment pipeline
+            images = np.array(dataset_augment(images=[image for _ in range(num_samples_per_image)]))
 
-        # Extract features
-        for i, X in enumerate(feature_data):
-            X = X.to(u.DEVICE)
-            with torch.no_grad():
-                output = fea_extractor(X)
-            features = torch.cat((features, output), dim=0)
-        
+            # Setup the feature extraction dataloader
+            feature_data_setup = FEDS(X=images, transform=u.FEA_TRANSFORM)
+            feature_data = DL(feature_data_setup, batch_size=batch_size, shuffle=False)
+
+            # Extract Features
+            for i, X in enumerate(feature_data):
+                X = X.to(u.DEVICE)
+                with torch.no_grad():
+                    output = fea_extractor(X)
+                mini_features[i * batch_size: (i * batch_size) + output.shape[0], :] = output
+            
+            features = torch.cat((features, mini_features), dim=0)
+
         # Save the normalized Feature Vectors as numpy arrays
         np.save(os.path.join(base_path, "{}_Features.npy".format(cls)), u.normalize(features[1:]).detach().cpu().numpy())
         
+        # Clean up CUDA device
         del output, features, fea_extractor, roi_extractor
         torch.cuda.empty_cache()
     else:
@@ -103,6 +130,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
         mini_features = torch.zeros(num_samples_per_image, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
         features = torch.zeros(1, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
         for name in f_names:
+
              # Get the augmentation pipeline
             augment_seed = r.randint(0, 99)
             dataset_augment, _ = get_augments(augment_seed)
@@ -117,7 +145,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
             feature_data_setup = FEDS(X=images, transform=u.FEA_TRANSFORM)
             feature_data = DL(feature_data_setup, batch_size=batch_size, shuffle=False)
 
-            # Extract features
+            # Extract Features
             for i, X in enumerate(feature_data):
                 X = X.to(u.DEVICE)
                 with torch.no_grad():
@@ -129,6 +157,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
         # Save the normalized Feature Vectors as numpy arrays
         np.save(os.path.join(base_path, "{}_Features.npy".format(cls)), u.normalize(features[1:]).detach().cpu().numpy())
 
+        # Clean up CUDA device
         del output, features, mini_features, fea_extractor
         torch.cuda.empty_cache()
 

@@ -2,12 +2,12 @@
     Entry Point into the Application
 """
 
-
 import sys
 import cli
 import gui
 import utils as u
 
+# ******************************************************************************************************************** #
 
 def main():
     u.breaker()
@@ -27,6 +27,7 @@ def main():
     u.myprint("\t   --- Application End ---", color="green")
     u.breaker()
 
+# ******************************************************************************************************************** #
 
 if __name__ == "__main__":
     sys.exit(main() or 0)

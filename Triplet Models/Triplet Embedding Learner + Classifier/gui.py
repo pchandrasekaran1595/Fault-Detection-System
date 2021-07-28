@@ -1,5 +1,5 @@
 """
-    TODO
+    GUI Application
 """
 
 def app():
