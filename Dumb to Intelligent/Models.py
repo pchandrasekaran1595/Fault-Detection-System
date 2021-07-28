@@ -1,15 +1,30 @@
+"""
+    Models
+"""
+
 import torch
 from torchvision import models
 from torch import nn, optim
-
 import utils as u
+
+# ******************************************************************************************************************** #
+
+# Region-of-Interest Extractor (Object Detector)
+class RoIExtractor(nn.Module):
+    def __init__(self):
+        super(RoIExtractor, self).__init__()
+
+        self.model = models.detection.fasterrcnn_mobilenet_v3_large_320_fpn(pretrained=True, progress=True)
+
+    def forward(self, x):
+        return self.model(x)
 
 # ******************************************************************************************************************** #
 
 # VGG16 Model; Slice out the final 2 blocks and Average Pool the 512x7x7 features down to 512x2x2 and then Flatten
 class FeatureExtractor(nn.Module):
     def __init__(self):
-        nn.Module.__init__(self)
+        super(FeatureExtractor, self).__init__()
         
         self.model = models.vgg16_bn(pretrained=True, progress=True)
         self.model = nn.Sequential(*[*self.model.children()][:2])
@@ -21,20 +36,13 @@ class FeatureExtractor(nn.Module):
 
 # ******************************************************************************************************************** #
 
-class RoIExtractor(nn.Module):
-    def __init__(self):
-        nn.Module.__init__(self)
-
-        self.model = models.detection.fasterrcnn_mobilenet_v3_large_320_fpn(pretrained=True, progress=True)
-
-    def forward(self, x):
-        return self.model(x)
-    
-# ******************************************************************************************************************** #
-
+"""
+    - Siamese Network Architecture (Input Layer --> Embedding Layer --> Similarity Predictor)
+    - Expects a pair of inputs during the training phase
+"""
 class SiameseNetwork(nn.Module):
     def __init__(self, IL=u.FEATURE_VECTOR_LENGTH, embed=None):
-        nn.Module.__init__(self)
+        super(SiameseNetwork, self).__init__()
 
         self.embedder = nn.Sequential()
         self.embedder.add_module("BN", nn.BatchNorm1d(num_features=IL, eps=1e-5))
@@ -55,23 +63,25 @@ class SiameseNetwork(nn.Module):
         if x2 is not None:
             x1 = self.embedder(x1)
             x2 = self.embedder(x2)
-            x = torch.abs(x1 - x2)
-            x =  self.classifier(x)
+            x = self.classifier(torch.abs(x1 - x2))
+            return x
         else:
             x = self.classifier(self.embedder(x1))
-        return x
+            return x
 
 # ******************************************************************************************************************** #
 
-fea_extractor = FeatureExtractor()
-fea_extractor.to(u.DEVICE)
-fea_extractor.eval()
 roi_extractor = RoIExtractor()
 roi_extractor.to(u.DEVICE)
 roi_extractor.eval()
 
+fea_extractor = FeatureExtractor()
+fea_extractor.to(u.DEVICE)
+fea_extractor.eval()
+
 # ******************************************************************************************************************** #
 
+# Setup the Siamese Netowrk
 def build_siamese_model(embed=None):
     if embed is not None:
         torch.manual_seed(u.SEED)

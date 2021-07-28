@@ -54,8 +54,6 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
     # len(f_names) == 0 occurs during first run of the program when there are no images in the Negative directory.
     # Extract ROI from the image, corrupt the ROI, put back the ROI into the image, This is the negative image used during the first run.
     if len(f_names) == 0 and re.match(r"Negative", cls, re.IGNORECASE):
-<<<<<<< HEAD
-        
         
         # Get the augmentation pipeline
         augment_seed = r.randint(0, 99)
@@ -93,32 +91,6 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
             features = torch.cat((features, output), dim=0)
         
         # Save the normalized Feature Vectors as numpy arrays
-=======
-        f_names = os.listdir(os.path.join(base_path, "Positive"))
-        num_samples_per_image = int(num_samples/len(f_names))
-        mini_features = torch.zeros(num_samples_per_image, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
-        features = torch.zeros(1, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
-        for name in f_names:
-            augment_seed = r.randint(0, 99)
-            dataset_augment, roi_augment = get_augments(augment_seed)
-
-            image = u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), name), cv2.IMREAD_COLOR))
-            x1, y1, x2, y2 = u.get_box_coordinates_make_data(roi_extractor, u.ROI_TRANSFORM, image)
-            crp_img = image[y1:y2, x1:x2]
-            crp_img = roi_augment(images=np.expand_dims(crp_img, axis=0))
-            image[y1:y2, x1:x2] = crp_img.squeeze()
-            images = np.array(dataset_augment(images=[image for _ in range(num_samples_per_image)]))
-
-            feature_data_setup = FEDS(X=images, transform=u.FEA_TRANSFORM)
-            feature_data = DL(feature_data_setup, batch_size=batch_size, shuffle=False)
-            for i, X in enumerate(feature_data):
-                X = X.to(u.DEVICE)
-                with torch.no_grad():
-                    output = fea_extractor(X)
-                mini_features[i * batch_size: (i * batch_size) + output.shape[0], :] = output
-            
-            features = torch.cat((features, mini_features), dim=0)
->>>>>>> All-Anchors_and_All-in-MakeData
         np.save(os.path.join(base_path, "{}_Features.npy".format(cls)), u.normalize(features[1:]).detach().cpu().numpy())
         
         del output, features, fea_extractor, roi_extractor

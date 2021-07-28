@@ -1,3 +1,8 @@
+"""
+    Training Script
+"""
+
+
 import os
 import cv2
 import torch
@@ -31,24 +36,23 @@ class ContrastiveLoss(torch.nn.Module):
 # ******************************************************************************************************************** #
 
 def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping_patience=None,
-         trainloader=None, validloader=None, criterion1=None, criterion2=None,
-         device=None, save_to_file=False,
-         path=None, verbose=False):
-        
+         trainloader=None, validloader=None, criterion1=None, criterion2=None, device=None,
+         save_to_file=False, path=None, verbose=False):
+
     """
         model                   : Pytorch Siamese Model
-        optimizer               : Optimizer Used
-        scheduler               : Scheduler (if Used, this script is setup for optim.lr_scheduler.ReduceLROnPlateau)
+        optimizer               : Optimizer Used (Initlialzed with a method from the model)
+        scheduler               : Scheduler (If used, this script is setup for optim.lr_scheduler.ReduceLROnPlateau)
         epochs                  : Number of training epochs
         early_stopping_patience : Number of epochs of stagnated validation loss after which to stop the training
         trainloader             : Train Dataloader
         validloader             : Valid Dataloader
         criterion1              : Loss Function 1
-        criterion2              : Loss Function 2
+        criterion2              : Loss Function 1
         device                  : Device on which to run the training on
-        save_to_file            : Flag that controls if verbose output should be saved to a file
-        path                    : Path at ehcih to save the checkpoints
-        verbose                 : Flag that controls the display of information during Training
+        save_to_file            : Flag that controls if verbose output should be save to a file
+        path                    : Patch at which to save the model checkpoint
+        verbose                 : Flag that controls the display of information during training
     """
 
     def getAccuracy(y_pred=None, y_true=None):
@@ -63,18 +67,21 @@ def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping
     u.myprint("Training ...", "cyan")
     u.breaker()
 
+    # Load Model onto the device
     model.to(device)
 
+    # Setup variables to be used in training loop
     DLS = {"train": trainloader, "valid": validloader}
     bestLoss = {"train": np.inf, "valid": np.inf}
     bestAccs = {"train": 0.0, "valid": 0.0}
-
     Losses = []
-    Accuracies = []
+    Accuracies = [] 
 
+    # Open .txt file to store verbose if required
     if save_to_file:
         file = open(os.path.join(path, "Metrics.txt"), "w+")
 
+    # Training and Validation Loop
     start_time = time()
     for e in range(epochs):
         e_st = time()
@@ -87,21 +94,33 @@ def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping
                 model.train()
             else:
                 model.eval()
-  
+
             lossPerPass = []
             accsPerPass = []
 
+            # Iterate through the all the data in the dataloader
             for X, y in DLS[phase]:
+
+                # Transfer data on the device
                 X = X.to(device)
                 if y.dtype == torch.int64:
                     y = y.to(device).view(-1)
                 else:
                     y = y.to(device)
 
+                # Zero out all the gradients
                 optimizer.zero_grad()
+
+                # Set the tensor to use gradients only during the training phase
                 with torch.set_grad_enabled(phase == "train"):
+
+                    # Pass Siamese Input to the model and obtain the output
                     output_1, output_2, output_3 = model(X[:, 0, :], X[:, 1, :])
+
+                    # Calculate the loss
                     loss = criterion1(output_1, output_2, y).mean() + criterion2(output_3, y)
+
+                    # Backward pass and update optimizer during training phase
                     if phase == "train":
                         loss.backward()
                         optimizer.step()
@@ -112,6 +131,7 @@ def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping
         Losses.append(epochLoss)
         Accuracies.append(epochAccs)
 
+        # Perform Early Stopping
         if early_stopping_patience:
             if epochLoss["valid"] < bestLoss["valid"]:
                 bestLoss = epochLoss
@@ -127,7 +147,8 @@ def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping
                     if save_to_file:
                         file.write("\nEarly Stopping at Epoch {}".format(e + 1))
                     break
-
+        
+        # Keep track of the epoch validation loss; save a checkpoint only if condition is met
         if epochLoss["valid"] < bestLoss["valid"]:
             bestLoss = epochLoss
             bestLossEpoch = e + 1
@@ -135,10 +156,12 @@ def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping
                         "optim_state_dict": optimizer.state_dict()},
                         os.path.join(path, "State.pt"))
 
+        # Keep track of the epoch validation accuracy
         if epochAccs["valid"] > bestAccs["valid"]:
             bestAccs = epochAccs
             bestAccsEpoch = e + 1
 
+        # Verbose Output
         if verbose:
             u.myprint("Epoch: {} | Train Loss: {:.5f} | Valid Loss: {:.5f} | Train Accs : {:.5f} | \
 Valid Accs : {:.5f} | Time: {:.2f} seconds".format(e + 1,
@@ -180,7 +203,7 @@ Valid Accs : {:.5f} | Time: {:.2f} seconds\n".format(e + 1,
 
 # ******************************************************************************************************************** #
 
-def trainer(part_name=None, model=None, epochs=10, lr=1e-3, wd=0, batch_size=128, early_stopping=None, fea_extractor=None):
+def trainer(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_size=None, early_stopping=None, fea_extractor=None):
     """
         part_name      : Part name
         model          : Siamese Network
@@ -197,16 +220,16 @@ def trainer(part_name=None, model=None, epochs=10, lr=1e-3, wd=0, batch_size=128
     p_features, n_features = np.load(os.path.join(base_path, "Positive_Features.npy")), np.load(os.path.join(base_path, "Negative_Features.npy"))
     p_shape, n_shape = p_features.shape[0], n_features.shape[0]
     
+    # Setup KFold Split
     if p_shape > n_shape:
         kf = KFold(n_splits=5, shuffle=True, random_state=u.SEED).split(n_features)
     else:
         kf = KFold(n_splits=5, shuffle=True, random_state=u.SEED).split(p_features)
-    
     for tr_idx, va_idx in kf:
         train_indices, valid_indices = tr_idx, va_idx
         break
 
-    # Consider all the images in the positive directory to be an anchor image. Generate Siamese Data for each image
+    # Consider all the images in the positive directory to be an anchor image (Generate Siamese Data for each image)
     names = [name for name in os.listdir(os.path.join(os.path.join(base_path, "Positive"))) if name[-3:] == "png"]
     anchors = []
     for name in names:
@@ -216,7 +239,7 @@ def trainer(part_name=None, model=None, epochs=10, lr=1e-3, wd=0, batch_size=128
     p_train, p_valid = p_features[train_indices], p_features[valid_indices]
     n_train, n_valid = n_features[train_indices], n_features[valid_indices]
 
-    #Setup the training and validation dataloaders
+    # Setup the training and validation dataloaders
     tr_data_setup = SiameseDS(anchors=anchors, p_vector=p_train, n_vector=n_train)
     va_data_setup = SiameseDS(anchors=anchors, p_vector=p_valid, n_vector=n_valid)
     tr_data = DL(tr_data_setup, batch_size=batch_size, shuffle=True, pin_memory=True, generator=torch.manual_seed(u.SEED), )
@@ -225,17 +248,15 @@ def trainer(part_name=None, model=None, epochs=10, lr=1e-3, wd=0, batch_size=128
     # Setup the optimizer
     optimizer = model.getOptimizer(lr=lr, wd=wd)
 
-    # Setup the chekpoint directory
+    # Setup the checkpoint directory
     checkpoint_path = os.path.join(os.path.join(u.DATASET_PATH, part_name), "Checkpoints")
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
-
+    
     # Fit the model
     L, A, _, _ = fit_(model=model, optimizer=optimizer, scheduler=None, epochs=epochs,
-                      early_stopping_patience=early_stopping,
-                      trainloader=tr_data, validloader=va_data, device=u.DEVICE,
-                      criterion1=ContrastiveLoss(),
-                      criterion2=torch.nn.BCEWithLogitsLoss(),
+                      early_stopping_patience=early_stopping, trainloader=tr_data, validloader=va_data, 
+                      device=u.DEVICE, criterion1=ContrastiveLoss(), criterion2=torch.nn.BCEWithLogitsLoss(),
                       save_to_file=True, path=checkpoint_path, verbose=True)
 
     TL, VL, TA, VA = [], [], [], []

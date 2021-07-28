@@ -1,3 +1,7 @@
+"""
+    Dataset Creation
+"""
+
 import os
 import re
 import cv2
@@ -116,6 +120,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
         # Save the normalized Feature Vectors as numpy arrays
         np.save(os.path.join(base_path, "{}_Features.npy".format(cls)), u.normalize(features[1:]).detach().cpu().numpy())
         
+        # Clean up CUDA device
         del output, features, fea_extractor, roi_extractor
         torch.cuda.empty_cache()
     else:
@@ -146,6 +151,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
                 X = X.to(u.DEVICE)
                 with torch.no_grad():
                     output = fea_extractor(X)
+                    print(output.shape)
                 mini_features[i * batch_size: (i * batch_size) + output.shape[0], :] = output
             
             features = torch.cat((features, mini_features), dim=0)
@@ -153,6 +159,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
         # Save the normalized Feature Vectors as numpy arrays
         np.save(os.path.join(base_path, "{}_Features.npy".format(cls)), u.normalize(features[1:]).detach().cpu().numpy())
 
+        # Clean up CUDA device
         del output, features, mini_features, fea_extractor
         torch.cuda.empty_cache()
 
