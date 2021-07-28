@@ -95,7 +95,7 @@ def realtime(device_id=None, part_name=None, model=None, save=False, fea_extract
     if countn == 0:
         countn = 1
     
-    # read data from capture object
+    # Read data from capture object
     while cap.isOpened():
         _, frame = cap.read()
         frame = u.clahe_equ(frame)
