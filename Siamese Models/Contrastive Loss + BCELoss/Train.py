@@ -32,8 +32,24 @@ class ContrastiveLoss(torch.nn.Module):
 
 def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping_patience=None,
          trainloader=None, validloader=None, criterion1=None, criterion2=None,
-         device=None,save_to_file=False,
+         device=None, save_to_file=False,
          path=None, verbose=False):
+        
+    """
+        model                   : Pytorch Siamese Model
+        optimizer               : Optimizer Used
+        scheduler               : Scheduler (if Used, this script is setup for optim.lr_scheduler.ReduceLROnPlateau)
+        epochs                  : Number of training epochs
+        early_stopping_patience : Number of epochs of stagnated validation loss after which to stop the training
+        trainloader             : Train Dataloader
+        validloader             : Valid Dataloader
+        criterion1              : Loss Function 1
+        criterion2              : Loss Function 2
+        device                  : Device on which to run the training on
+        save_to_file            : Flag that controls if verbose output should be saved to a file
+        path                    : Path at ehcih to save the checkpoints
+        verbose                 : Flag that controls the display of information during Training
+    """
 
     def getAccuracy(y_pred=None, y_true=None):
         y_pred, y_true = torch.sigmoid(y_pred).detach(), y_true.detach()
@@ -71,7 +87,7 @@ def fit_(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping
                 model.train()
             else:
                 model.eval()
-
+  
             lossPerPass = []
             accsPerPass = []
 

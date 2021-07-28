@@ -34,7 +34,8 @@ CLI_GREEN  = (0, 255, 0)
 # ****************************************** Default CLI Arguments *************************************************** #
 embed_layer_size = 2048
 num_samples = 15000
-epochs = 1000
+e_epochs = 250
+c_epochs = 250
 lower_bound_confidence = 0.80
 upper_bound_confidence = 0.95
 device_id = 0

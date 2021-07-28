@@ -16,6 +16,7 @@ class RoIExtractor(nn.Module):
 
 # ******************************************************************************************************************** #
 
+# VGG16 Model; Slice out the final 2 blocks and Average Pool the 512x7x7 features down to 512x2x2 and then Flatten
 class FeatureExtractor(nn.Module):
     def __init__(self):
         nn.Module.__init__(self)
