@@ -241,26 +241,36 @@ Valid Accs : {:.5f} | Time: {:.2f} seconds\n".format(e + 1,
 def train_embedder(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_size=None, fea_extractor=None):
     base_path = os.path.join(u.DATASET_PATH, part_name)
     
+    # Read the anchor image and obtain its features
+    anchor = u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR))
+    anchor = u.get_single_image_features(fea_extractor, u.FEA_TRANSFORM, image=anchor)
+
+    # Read the features (as saved in MakeData.py)
     p_features, n_features = np.load(os.path.join(base_path, "Positive_Features.npy")), np.load(os.path.join(base_path, "Negative_Features.npy"))
+
+    # Split the feature vectors into Training and Validation Sets
     kf = KFold(n_splits=5, shuffle=True, random_state=u.SEED).split(p_features)
     for tr_idx, va_idx in kf:
         train_indices, valid_indices = tr_idx, va_idx
         break
-
-    anchor = u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR))
-    anchor = u.get_single_image_features(fea_extractor, u.FEA_TRANSFORM, image=anchor)
     p_train, p_valid = p_features[train_indices], p_features[valid_indices]
     n_train, n_valid = n_features[train_indices], n_features[valid_indices]
 
+    # Setup the training and validation dataloaders
     tr_data_setup = TripletDS(anchor=anchor, p_vector=p_train, n_vector=n_train)
     va_data_setup = TripletDS(anchor=anchor, p_vector=p_valid, n_vector=n_valid)
     tr_data = DL(tr_data_setup, batch_size=batch_size, shuffle=True, pin_memory=True, generator=torch.manual_seed(u.SEED), )
     va_data = DL(va_data_setup, batch_size=batch_size, shuffle=False, pin_memory=True)
+    
+    # Setup the optimizer
     optimizer = model.getOptimizer(lr=lr, wd=wd)
 
+    # Setup the checkpoint directory
     checkpoint_path = os.path.join(os.path.join(u.DATASET_PATH, part_name), "Checkpoints")
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
+    
+    # Fit the Model
     L, BLE = fit_embedder(model=model, optimizer=optimizer, scheduler=None, epochs=epochs,
                           early_stopping_patience=None, trainloader=tr_data, validloader=va_data, 
                           device=u.DEVICE, criterion=torch.nn.TripletMarginLoss(margin=1),
@@ -272,44 +282,64 @@ def train_embedder(part_name=None, model=None, epochs=None, lr=None, wd=None, ba
         TL.append(L[i]["train"])
         VL.append(L[i]["valid"])
 
+    # Plot Relevant Metrics
     x_Axis = np.arange(1, len(L)+1)
     plt.figure("Plots", figsize=(12, 6))
     plt.plot(x_Axis, TL, "r", label="Training Loss")
     plt.plot(x_Axis, VL, "b", label="validation Loss")
     plt.legend()
     plt.grid()
+
+    # Save the figure for analysis
     plt.savefig(os.path.join(os.path.join(u.DATASET_PATH, part_name), "Embedder Graphs.jpg"))
+
+    # Close the figure
     plt.close(fig="Plots")
 
     return checkpoint_path
 
 # ******************************************************************************************************************** #
 
-def train_classifier(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_size=None, fea_extractor=None):
+def train_classifier(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_size=None, early_stopping=None):
+    """
+        part_name      : Part name
+        model          : Siamese Network
+        epochs         : Number of training epochs
+        lr             : Learning Rate
+        wd             : Weight Decay
+        batch_size     : Batch Size used during training
+        early_stopping : Number of epochs without improvement after which to stop training
+    """
     base_path = os.path.join(u.DATASET_PATH, part_name)
     
+    # Read the features (as saved in MakeData.py)
     p_features, n_features = np.load(os.path.join(base_path, "Positive_Features.npy")), np.load(os.path.join(base_path, "Negative_Features.npy"))
+
+    # Split the feature vectors into Training and Validation Sets
     kf = KFold(n_splits=5, shuffle=True, random_state=u.SEED).split(p_features)
     for tr_idx, va_idx in kf:
         train_indices, valid_indices = tr_idx, va_idx
         break
-
-    anchor = cv2.cvtColor(src=cv2.imread(os.path.join(os.path.join(base_path, "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR), code=cv2.COLOR_BGR2RGB)
-    anchor = u.get_single_image_features(fea_extractor, u.FEA_TRANSFORM, image=anchor)
     p_train, p_valid = p_features[train_indices], p_features[valid_indices]
     n_train, n_valid = n_features[train_indices], n_features[valid_indices]
 
+    # Setup the training and validation dataloaders
     tr_data_setup = DS(p_vector=p_train, n_vector=n_train)
     va_data_setup = DS(p_vector=p_valid, n_vector=n_valid)
     tr_data = DL(tr_data_setup, batch_size=batch_size, shuffle=True, pin_memory=True, generator=torch.manual_seed(u.SEED), )
     va_data = DL(va_data_setup, batch_size=batch_size, shuffle=False, pin_memory=True)
+
+    # Setup the optimizer
     optimizer = model.getOptimizer(lr=lr, wd=wd)
 
+    # Setup the checkpoint directory
     checkpoint_path = os.path.join(os.path.join(u.DATASET_PATH, part_name), "Checkpoints")
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
+    
+    # Fit the Model
     L, A, _, _ = fit_classifier(model=model, optimizer=optimizer, scheduler=None, epochs=epochs,
-                                early_stopping_patience=None, trainloader=tr_data, validloader=va_data, device=u.DEVICE,
+                                early_stopping_patience=early_stopping, trainloader=tr_data, validloader=va_data, device=u.DEVICE,
                                 criterion=torch.nn.BCEWithLogitsLoss(),
                                 save_to_file=True, path=checkpoint_path, verbose=True)
 
@@ -321,7 +351,7 @@ def train_classifier(part_name=None, model=None, epochs=None, lr=None, wd=None, 
         TA.append(A[i]["train"])
         VA.append(A[i]["valid"])
 
-    # Plots
+    # Plot Relevant Metrics
     x_Axis = np.arange(1, len(L)+1)
     plt.figure("Plots", figsize=(12, 6))
     plt.subplot(1, 2, 1)
@@ -334,7 +364,11 @@ def train_classifier(part_name=None, model=None, epochs=None, lr=None, wd=None, 
     plt.plot(x_Axis, VA, "b", label="validation Accuracy")
     plt.legend()
     plt.grid()
+
+    # Save the figure for analysis
     plt.savefig(os.path.join(os.path.join(u.DATASET_PATH, part_name), "Classifier Graphs.jpg"))
+
+    # Close the figure
     plt.close(fig="Plots")
 
 # ******************************************************************************************************************** #
