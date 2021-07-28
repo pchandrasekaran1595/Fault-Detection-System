@@ -64,8 +64,6 @@ class SiameseDS(Dataset):
             self.fullX = self.fullX[1:]
             self.fully = self.fully[1:]
 
-            print(self.fullX.shape)
-
     def __len__(self):
         return self.fullX.shape[0]
 
