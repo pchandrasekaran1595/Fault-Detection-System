@@ -11,6 +11,7 @@ import utils as u
 def capture_snapshot(device_id=0, part_name=None, roi_extractor=None):
     path = os.path.join(os.path.join(u.DATASET_PATH, part_name), "Positive")
 
+    # Setup Dataset Directory
     if not os.path.exists(path):
         os.makedirs(path)
         file = open(os.path.join(os.path.join(u.DATASET_PATH, part_name), "Box.txt"), "w")

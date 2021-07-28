@@ -1,18 +1,24 @@
+"""
+    Constants and Utility Functions
+"""
+
 import os
 import cv2
-import numpy as np
 import torch
-from torchvision import transforms, ops
+from torchvision import transforms
 from termcolor import colored
 os.system("color")
 
+# Self Aware Dataset Directory
 DATASET_PATH = os.path.join(os.getcwd(), "Datasets")
 if not os.path.exists(DATASET_PATH):
     os.makedirs(DATASET_PATH)
 # DATASET_PATH = os.path.join(os.path.dirname(__file__), "Datasets")
 
+# Capture object Attributes
 CAM_WIDTH, CAM_HEIGHT, FPS, DELAY = 640, 360, 30, 5
 
+# DL Model Constants
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 ROI_TRANSFORM = transforms.Compose([transforms.ToTensor(), ])
@@ -24,16 +30,17 @@ SEED = 0
 RELIEF = 25
 FEATURE_VECTOR_LENGTH = 2048
 
+# GUI Color Schemes
 GUI_ORANGE = (255, 165, 0)
 GUI_RED    = (255, 0, 0)
 GUI_GREEN  = (0, 255, 0)
 
 # ****************************************** Default CLI Arguments *************************************************** #
 embed_layer_size = 2048
-num_samples = 15000
+num_samples = 1000
 epochs = 1000
-lower_bound_confidence = 0.7
-upper_bound_confidence = 0.8
+lower_bound_confidence = 0.95
+upper_bound_confidence = 0.99
 device_id = 0
 early_stopping_step = 50
 # ******************************************************************************************************************** #
@@ -77,6 +84,11 @@ def normalize(x):
 
 # Extract the feature vector from a single image
 def get_single_image_features(model=None, transform=None, image=None):
+    """
+        model     : Pretrained Deep Learning Feature Extractor Model (Pytorch)
+        transform : Transform expected to be performed on the input
+        image     : Image File
+    """
     with torch.no_grad():
         features = model(transform(image).to(DEVICE).unsqueeze(dim=0))
     return normalize(features).detach().cpu().numpy()

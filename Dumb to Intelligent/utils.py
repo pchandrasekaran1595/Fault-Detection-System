@@ -1,3 +1,7 @@
+"""
+    Constants and Utility Functions
+"""
+
 import os
 import cv2
 import numpy as np
@@ -38,10 +42,10 @@ CLI_GREEN  = (0, 255, 0)
 
 # ****************************************** Default CLI Arguments *************************************************** #
 embed_layer_size = 2048
-num_samples = 15000
+num_samples = 1000
 epochs = 1000
-lower_bound_confidence = 0.80
-upper_bound_confidence = 0.95
+lower_bound_confidence = 0.95
+upper_bound_confidence = 0.99
 device_id = 0
 early_stopping_step = 50
 # ******************************************************************************************************************** #
@@ -72,6 +76,22 @@ def preprocess(image, change_color_space=True):
     h, w, _ = image.shape
     cx, cy = w // 2, h // 2
     return image[cy - 112:cy + 112, cx - 112:cx + 112, :]
+
+
+# Alpha Blending 2 images; image1 -> fg, image2 -> bg
+def alpha_blend(image1=None, image2=None, alpha=0.1):
+    image1 = image1 / 255
+    image2 = image2 / 255
+    image = (alpha * image1) + ((1-alpha) * image2)
+    return np.clip((image * 255), 0, 255).astype("uint8")
+
+# ******************************************************************************************************************** #
+
+# Normalize the vector to a min-max of [0, 1]
+def normalize(x):
+    for i in range(x.shape[0]):
+        x[i] = (x[i] - torch.min(x[i])) / (torch.max(x[i]) - torch.min(x[i]))
+    return x
 
 # ******************************************************************************************************************** #
 
@@ -144,23 +164,6 @@ def process(image, x1, y1, x2, y2):
     else:
         cv2.rectangle(img=image, pt1=(x1, y1), pt2=(x2, y2), color=(255, 255, 255), thickness=2)
     return image
-
-# ******************************************************************************************************************** #
-
-# Normalize the vector to a min-max of [0, 1]
-def normalize(x):
-    for i in range(x.shape[0]):
-        x[i] = (x[i] - torch.min(x[i])) / (torch.max(x[i]) - torch.min(x[i]))
-    return x
-
-# ******************************************************************************************************************** #
-
-# Alpha Blending 2 images; image1 -> fg, image2 -> bg
-def alpha_blend(image1=None, image2=None, alpha=0.1):
-    image1 = image1 / 255
-    image2 = image2 / 255
-    image = (alpha * image1) + ((1-alpha) * image2)
-    return np.clip((image * 255), 0, 255).astype("uint8")
 
 # ******************************************************************************************************************** #
 

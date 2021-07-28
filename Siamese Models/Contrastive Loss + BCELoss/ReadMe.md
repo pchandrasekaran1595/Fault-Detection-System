@@ -1,1 +1,5 @@
-Follows almost the exact same implementation as in Siamese with the addition of using Contrastive Loss to further seperate dissimilar images.
+- Uses a VGG16 (with Batch Normalization) as the backbone pretrained network
+
+- This is to be used for testing
+
+- Uses Contrastive Loss to try and seperate apart Samples

@@ -25,7 +25,7 @@ FEATURE_VECTOR_LENGTH = 2048
 
 # ****************************************** Default CLI Arguments *************************************************** #
 embed_layer_size = 2048
-num_samples = 5000
+num_samples = 1000
 epochs = 1000
 confidence = 0.95
 device_id = 0

@@ -7,14 +7,21 @@ import utils as u
 
 # ******************************************************************************************************************** #
 
+# Inference Helper
 def __help__(frame=None, model=None, fea_extractor=None, show_prob=True, pt1=None, pt2=None):
     disp_frame = frame.copy()
 
+    # Center Crop + Resize
     frame = u.preprocess(frame, change_color_space=False)
+
+    # Perform Inference on current frame
     with torch.no_grad():
         features = u.normalize(fea_extractor(u.FEA_TRANSFORM(frame).to(u.DEVICE).unsqueeze(dim=0)))
         y_pred = torch.sigmoid(model(features))[0][0].item()
 
+    # Prediction > Upper Bound                 -----> Match
+    # Lower Bound <= Prediction <= Upper Bound -----> Possible Match
+    # Prediction < Lower Bound                 -----> No Match
     if show_prob:
         if y_pred >= u.upper_bound_confidence:
             cv2.putText(img=disp_frame, text="Match, {:.5f}".format(y_pred), org=(25, 75),

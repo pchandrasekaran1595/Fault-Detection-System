@@ -1,3 +1,7 @@
+"""
+    CLI Application
+"""
+
 import os
 import sys
 from time import time
