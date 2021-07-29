@@ -64,6 +64,10 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
 
             image = u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), name), cv2.IMREAD_COLOR))
             x1, y1, x2, y2 = u.get_box_coordinates_make_data(roi_extractor, u.ROI_TRANSFORM, image)
+            assert(x1 is not None)
+            if x1 is None:
+                x1, y1 = 0, 0
+                x2, y2 = u.SIZE, u.SIZE
             crp_img = image[y1:y2, x1:x2]
             crp_img = roi_augment(images=np.expand_dims(crp_img, axis=0))
             image[y1:y2, x1:x2] = crp_img.squeeze()
