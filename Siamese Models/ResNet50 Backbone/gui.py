@@ -173,10 +173,13 @@ class VideoFrame(tk.Frame):
 
         # If VideoFrame is in Result Mode; Default is None
         if self.isResult:
+            # Load the Model
             self.model_path = os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Checkpoints"), "State.pt")
             self.model.load_state_dict(torch.load(self.model_path, map_location=u.DEVICE)["model_state_dict"])
             self.model.eval()
             self.model.to(u.DEVICE)
+
+            # Get the Reference Bounding Box Coordinates
             file = open(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Box.txt"), "r")
             self.data = file.read().split(",")
             file.close()
@@ -226,7 +229,7 @@ class VideoFrame(tk.Frame):
                 # Apply CLAHE (2, 2) Preprocessing. May not be required once lighting issue is fixed
                 frame = u.clahe_equ(frame)
 
-                # Process frame in during inference
+                # Process frame for inference output
                 frame = __help__(frame=frame, model=self.model, anchor=None, 
                                  pt1=(self.data[0], self.data[1]), pt2=(self.data[2], self.data[3]),
                                  show_prob=False, fea_extractor=Models.fea_extractor)
