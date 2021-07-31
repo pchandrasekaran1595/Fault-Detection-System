@@ -1,6 +1,6 @@
 """
     1. Information regarding various Augmentation Pipelines used.
-    2. Add all augmentation piplines used for reference.
+    2. Add all augmentation pipelines used for reference.
 """
 
 import imgaug
