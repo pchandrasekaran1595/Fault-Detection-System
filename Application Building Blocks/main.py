@@ -9,10 +9,10 @@ def main():
     u.breaker()
     u.myprint("\t   --- Application Start ---", color="green")
 
-    args = "--gui"
-    with_gui = False
+    args = "--nogui"
+    with_gui = True
     if args in sys.argv:
-        with_gui = True
+        with_gui = False
     
     if with_gui:
         gui.app()
