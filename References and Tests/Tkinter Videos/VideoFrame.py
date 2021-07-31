@@ -25,11 +25,19 @@ class VideoFrame(tk.Frame):
     
     # Function to start the Video Capture
     def start(self):
+        """
+            Start Updating the canvas
+        """
         self.V.start()
         self.update()
     
     # Function to update the canvas every 15 ms
     def update(self):
+        """
+            - Handles how the canvas is updated
+            - Has 2 modes: Normal Mode and Result Mode
+            - Normal Mode is used during frame capture, Result Mode is used during inference
+        """
         ret, frame = self.V.get_frame()
         if ret:
             self.image = ImageTk.PhotoImage(Image.fromarray(frame))
@@ -38,6 +46,9 @@ class VideoFrame(tk.Frame):
     
     # Function to stop the Video Capture
     def stop(self):
+        """
+            Stop updating the canvas
+        """
         if self.id:
             self.after_cancel(self.id)
             self.id = None

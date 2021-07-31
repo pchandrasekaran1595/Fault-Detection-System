@@ -1,1 +1,1 @@
-Tests for various Feature Extraction and Comparison Method 
+Tests for various Feature Extraction and Comparison Methods 

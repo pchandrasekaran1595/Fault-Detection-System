@@ -14,7 +14,6 @@ import utils as u
 class RoIExtractor(nn.Module):
     def __init__(self):
         nn.Module.__init__(self)
-
         self.model = models.detection.fasterrcnn_mobilenet_v3_large_320_fpn(pretrained=True, progress=True)
 
     def forward(self, x):
@@ -50,8 +49,13 @@ class EmbeddingNetwork(nn.Module):
         self.embedder.add_module("FC", nn.Linear(in_features=IL, out_features=embed))
         self.embedder.add_module("AN", nn.ReLU())
     
+    # Setup Adam Optimizer
     def getOptimizer(self, lr=1e-3, wd=0):
         return optim.Adam(self.parameters(), lr=lr, weight_decay=wd)
+    
+    # Setup Dynamic Learn Rate Scheduler
+    def getScheduler(self, optimizer=None, patience=5, eps=1e-8):
+        return optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience=patience, eps=eps, verbose=True)
 
     def forward(self, x1, x2=None, x3=None):
         if x2 is not None and x3 is not None:
@@ -77,9 +81,14 @@ class Network(nn.Module):
         self.classifier.add_module("BN", nn.BatchNorm1d(num_features=embed, eps=1e-5))
         self.classifier.add_module("FC", nn.Linear(in_features=embed, out_features=1))
     
+    # Setup Adam Optimizer
     def getOptimizer(self, lr=1e-3, wd=0):
         p = [p for p in self.parameters() if p.requires_grad]
         return optim.Adam(p, lr=lr, weight_decay=wd)
+    
+    # Setup Dynamic Learn Rate Scheduler
+    def getScheduler(self, optimizer=None, patience=5, eps=1e-8):
+        return optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience=patience, eps=eps, verbose=True)
 
     def forward(self, x):
         return self.classifier(self.embedding_net(x))
