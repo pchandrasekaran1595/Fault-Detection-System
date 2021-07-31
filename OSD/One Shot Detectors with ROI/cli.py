@@ -1,8 +1,5 @@
 """
-    CLI Arguments:
-        1. --capture   : Flag that controls entry into capture mode
-        2. --name      : Name of the image file
-        3. --cliplimit : Cliplimit used in CLAHE preprocessing 
+    CLI Application
 """
 
 import os

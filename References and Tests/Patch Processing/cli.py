@@ -1,8 +1,5 @@
 """
-    CLI Arguments:
-        1. --pw   : Width of the patch (in pixels)
-        2. --pw   : Height of the patch (in pixels)
-        3. --test : number indicating what test is to be performed
+    CLI Application
 """
 
 import sys

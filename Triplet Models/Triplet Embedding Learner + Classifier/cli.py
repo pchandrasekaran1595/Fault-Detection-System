@@ -33,12 +33,10 @@ def app():
         u.e_epochs = int(sys.argv[sys.argv.index(args_3) + 1])
     if args_4 in sys.argv:
         u.c_epochs = int(sys.argv[sys.argv.index(args_4) + 1])
-
     if args_5 in sys.argv:
         u.lower_bound_confidence = float(sys.argv[sys.argv.index(args_5) + 1])        
     if args_6 in sys.argv:
-        u.upper_bound_confidence = float(sys.argv[sys.argv.index(args_6) + 1]) 
-
+        u.upper_bound_confidence = float(sys.argv[sys.argv.index(args_6) + 1])
     if args_7 in sys.argv:
         u.device_id = int(sys.argv[sys.argv.index(args_7) + 1])
 

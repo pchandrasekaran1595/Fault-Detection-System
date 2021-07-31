@@ -1,7 +1,5 @@
 """
-    CLI Arguments:
-        1. --capture   : Flag that controls entry into capture mode
-        2. --name      : Name of the image file
+    CLI Application
 """
 
 import os
