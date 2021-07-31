@@ -1,0 +1,1 @@
+- Performs ROI Extraction of a Video Frame displayed in a tkinter frame by binding mouse actions to callbacks.

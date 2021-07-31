@@ -6,3 +6,5 @@
 
 - Press Start to resume viewing the webcam feed
     1. Creates a new Video Object 
+
+- Test App used in the development of all subsequent GUIs

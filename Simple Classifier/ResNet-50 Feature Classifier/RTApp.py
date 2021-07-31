@@ -10,6 +10,14 @@ import utils as u
 
 # Inference Helper
 def __help__(frame=None, model=None, fea_extractor=None, show_prob=True, pt1=None, pt2=None):
+    """
+        frame         : Current frame being processed
+        model         : Siamese Network Model
+        fea_extractor : Feature Extraction Model
+        show_prob     : Flag to control whether to display the similarity score
+        pt1           : Start Point of the Reference Bounding Box
+        pt2           : End Point of the Reference Bounding Box
+    """
     disp_frame = frame.copy()
 
     # Center Crop + Resize

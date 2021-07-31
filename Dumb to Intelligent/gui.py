@@ -169,6 +169,8 @@ class VideoFrame(tk.Frame):
             self.model.load_state_dict(torch.load(self.model_path, map_location=u.DEVICE)["model_state_dict"])
             self.model.eval()
             self.model.to(u.DEVICE)
+
+            # Read the anchor image
             self.anchor = cv2.imread(os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR)
 
         # Setup the canvas and pack it into the frame
@@ -195,6 +197,7 @@ class VideoFrame(tk.Frame):
         ret, frame = self.V.get_frame()
 
         if not self.isResult:
+            # Apply CLAHE (2, 2) Preprocessing. May not be required once lighting issue is fixed
             frame = u.clahe_equ(frame)
             if ret:
                 h, w, _ = frame.shape
@@ -208,9 +211,10 @@ class VideoFrame(tk.Frame):
                 return
         else:
             if ret:
+                # Apply CLAHE (2, 2) Preprocessing. May not be required once lighting issue is fixed
                 frame = u.clahe_equ(frame)
 
-                # Process frame in during inference
+                # Process frame for inference output
                 frame = __help__(frame=frame, model=self.model, anchor=None,
                                  show_prob=True, fea_extractor=Models.fea_extractor)
 
@@ -351,6 +355,8 @@ class ButtonFrame(tk.Frame):
 
         # Read the current frame from the capture object
         ret, frame = self.VideoWidget.V.get_frame()
+
+        # Apply CLAHE (2, 2) Preprocessing. May not be required once lighting issue is fixed
         frame = u.clahe_equ(frame)
 
         # Save the frame and update counter
@@ -380,6 +386,8 @@ class ButtonFrame(tk.Frame):
 
         # Read the current frame from the capture object
         ret, frame = self.VideoWidget.V.get_frame()
+
+        # Apply CLAHE (2, 2) Preprocessing. May not be required once lighting issue is fixed
         frame = u.clahe_equ(frame)
 
         # Save the frame and update counter
@@ -444,7 +452,7 @@ class ButtonFrame(tk.Frame):
             model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
 
             # Start a new application window
-            setup(part_name=self.part_name, model=model, imgfilepath=os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Positive"), "Snapshot_1.png"), isResult=True)
+            setup(device_id=u.device_id, part_name=self.part_name, model=model, imgfilepath=os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Positive"), "Snapshot_1.png"), isResult=True)
         else:
             messagebox.showerror(title="Value Error", message="Enter a valid input")
             return
@@ -461,7 +469,7 @@ class ButtonFrame(tk.Frame):
         model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
 
         # Start a new application window
-        setup(model=model)
+        setup(device_id=u.device_id, model=model)
     
     # Callback handling quit
     def do_quit(self):
@@ -488,7 +496,7 @@ class Application(object):
 # ******************************************************************************************************************** #
 
 # Top level window setup and Application start
-def setup(part_name=None, model=None, imgfilepath=None, isResult=False):
+def setup(device_id=None, part_name=None, model=None, imgfilepath=None, isResult=False):
     # Setup a toplevel window
     window = tk.Toplevel()
     window.title("Application")
@@ -498,7 +506,7 @@ def setup(part_name=None, model=None, imgfilepath=None, isResult=False):
     w_canvas.place(x=0, y=0)
 
     # Initialize Application Wrapper
-    Application(window, V=Video(id=u.device_id, width=u.CAM_WIDTH, height=u.CAM_HEIGHT, fps=u.FPS), 
+    Application(window, V=Video(id=device_id, width=u.CAM_WIDTH, height=u.CAM_HEIGHT, fps=u.FPS), 
                 part_name=part_name, model=model, imgfilepath=imgfilepath, isResult=isResult)
 
 
@@ -509,9 +517,10 @@ def app():
     args_1 = "--num-samples"
     args_2 = "--embed"
     args_3 = "--epochs"
-    args_4 = "--lower"
-    args_5 = "--upper"
-    args_6 = "--early"
+    args_4 = "--id"
+    args_5 = "--lower"
+    args_6 = "--upper"
+    args_7 = "--early"
 
     # CLI Argument Handling
     if args_1 in sys.argv:
@@ -521,11 +530,13 @@ def app():
     if args_3 in sys.argv:
         u.epochs = int(sys.argv[sys.argv.index(args_3) + 1])
     if args_4 in sys.argv:
-        u.lower_bound_confidence = float(sys.argv[sys.argv.index(args_4) + 1])        
+        u.device_id = int(sys.argv[sys.argv.index(args_4) + 1])
     if args_5 in sys.argv:
-        u.upper_bound_confidence = float(sys.argv[sys.argv.index(args_5) + 1]) 
+        u.lower_bound_confidence = float(sys.argv[sys.argv.index(args_5) + 1])
     if args_6 in sys.argv:
-        u.early_stopping_step = int(sys.argv[sys.argv.index(args_6) + 1]) 
+        u.upper_bound_confidence = float(sys.argv[sys.argv.index(args_6) + 1])
+    if args_7 in sys.argv:
+        u.early_stopping_step = int(sys.argv[sys.argv.index(args_7) + 1]) 
 
     # Root Window Setup
     root = tk.Tk()
@@ -538,7 +549,7 @@ def app():
     model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
 
     # Start a new application window
-    setup(model=model)
+    setup(device_id=u.device_id, model=model)
     
     # Start
     root.mainloop()

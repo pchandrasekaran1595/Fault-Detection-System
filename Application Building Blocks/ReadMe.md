@@ -4,23 +4,32 @@
     3. Models.py
     4. Train.py
     5. utils.py
-    
+
+&nbsp;
+
 - Scripts used ONLY by GUI Application
     1. gui.py
+
+&nbsp;
 
 - Scripts used ONLY by CLI Application
     1. cli.py      
     2. Snapshot.py
     3. RTApp.py
 
-- Scripts and their Functionalities
-    1. cli.py   --> CLI Application
-    2. gui.py   --> GUI Application
-    3. main.py  --> Entry Point into the Application
-    4. utils.py --> Script that contains constants and fucntions that are used across various scripts
+&nbsp;
 
-    5. Snapshot.py --> CLI Application Script that handles the capture of frames 
-    6. RTApp.py    --> CLI Application Script that handles the inference 
- 
-    7. Train.py  --> Script that holds the fit() function; also responsible for splitting data import Train/Valid Splits
-    8. Models.py --> Script that holds all the models used by the application
+- Scripts and their Functionalities
+<pre>
+1. cli.py      --> CLI Application Main
+2. gui.py      --> GUI Application Main
+3. main.py     --> Entry Point into the Application
+4. utils.py    --> Script that contains constants and functions that are used across various scripts
+
+5. Snapshot.py --> CLI Application Script that handles the capture of frames 
+6. RTApp.py    --> CLI Application Script that handles the inference 
+
+7. Train.py    --> Script that holds the fit() function; responsible for the entire training process of the application
+8. Models.py   --> Script that holds all the models used by the application]
+9. Makedata    --> Script that is responsible for the creation of the basic dataset; handles both the positive and negative classes
+</pre>

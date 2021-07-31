@@ -21,6 +21,8 @@ DET_TRANSFORM = transforms.Compose([transforms.ToTensor(), ])
 # All other model transforms
 TRANSFORM = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),])
 
+# ******************************************************************************************************************** #
+
 # Center Crop Preprocessing (Reshape to 256x256, then center crop to 224x224)
 def preprocess(image, change_color_space=True):
     if change_color_space:

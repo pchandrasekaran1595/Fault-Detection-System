@@ -33,12 +33,10 @@ def app():
         u.e_epochs = int(sys.argv[sys.argv.index(args_3) + 1])
     if args_4 in sys.argv:
         u.c_epochs = int(sys.argv[sys.argv.index(args_4) + 1])
-
     if args_5 in sys.argv:
         u.lower_bound_confidence = float(sys.argv[sys.argv.index(args_5) + 1])        
     if args_6 in sys.argv:
-        u.upper_bound_confidence = float(sys.argv[sys.argv.index(args_6) + 1]) 
-
+        u.upper_bound_confidence = float(sys.argv[sys.argv.index(args_6) + 1])
     if args_7 in sys.argv:
         u.device_id = int(sys.argv[sys.argv.index(args_7) + 1])
 
@@ -50,6 +48,13 @@ def app():
         ch = input("1. Add Object\n2. Retrain\n3. Application\n4. Exit\n\nEnter Choice : ")
 
         if ch == "1":
+            """
+                Add Object
+                    - Capture image Snapshot
+                    - Generate Feature Vector Dataset
+                    - Train the Embedder, then used trained embedding net to train the Classifier
+                    - Perform Realtime Inference
+            """
             u.breaker()
             part_name = input("Enter part name : ")
             capture_snapshot(device_id=u.device_id, part_name=part_name, roi_extractor=Models.roi_extractor)
@@ -68,6 +73,11 @@ def app():
             realtime(device_id=u.device_id, part_name=part_name, model=classifier, save=False, show_prob=True, fea_extractor=Models.fea_extractor)
         
         elif ch == "2":
+            """ 
+                Retrain
+                    - Generate Feature Vector Dataset
+                    - Train the Embedder, then used trained embedding net to train the Classifier
+            """
             u.breaker()
             part_name = input("Enter part name : ")
 
@@ -84,6 +94,10 @@ def app():
             train_classifier(part_name=part_name, model=classifier, epochs=u.c_epochs, lr=c_lr, wd=c_wd, batch_size=batch_size, fea_extractor=Models.fea_extractor)
         
         elif ch == "3":
+            """
+                Application
+                    - Perform Realtime Inference
+            """
             u.breaker()
             part_name = input("Enter part name : ")
 

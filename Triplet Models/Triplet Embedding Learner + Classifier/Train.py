@@ -16,24 +16,47 @@ from DatasetTemplates import TripletDS, DS
 def fit_embedder(model=None, optimizer=None, scheduler=None, epochs=None, early_stopping_patience=None,
                  trainloader=None, validloader=None, criterion=None, device=None, save_to_file=None,
                  path=None, verbose=None):
+    
+    """
+        model                   : Pytorch Classifier Model
+        optimizer               : Optimizer Used (Initlialzed with a method from the model)
+        scheduler               : Scheduler (If used, this script is setup for optim.lr_scheduler.ReduceLROnPlateau)
+        epochs                  : Number of training epochs
+        early_stopping_patience : Number of epochs of stagnated validation loss after which to stop the training
+        trainloader             : Train Dataloader
+        validloader             : Valid Dataloader
+        criterion               : Loss Function
+        device                  : Device on which to run the training on
+        save_to_file            : Flag that controls if verbose output should be save to a file
+        path                    : Patch at which to save the model checkpoint
+        verbose                 : Flag that controls the display of information during training
+    """
+
     u.breaker()
     u.myprint("Embedder Training ...", "cyan")
     u.breaker()
 
+    # Load Model onto the device
     model.to(device)
+
+    # Setup variables to be used in training loop
+    DLS = {"train": trainloader, "valid": validloader}
+    bestLoss = {"train": np.inf, "valid": np.inf}
     Losses = []
-    bestLoss = {"train" : np.inf, "valid" : np.inf}
-    DLS = {"train" : trainloader, "valid" : validloader}
 
+    # Open .txt file to store verbose if required
     if save_to_file:
-        file = open(os.path.join(path, "Embedder Metrics.txt"), "w+")
+        file = open(os.path.join(path, "Metrics.txt"), "w+")
 
+    # Training and Validation Loop
     start_time = time()
     for e in range(epochs):
         e_st = time()
+
         epochLoss = {"train" : 0.0, "valid" : 0.0}
 
         for phase in ["train", "valid"]:
+            # Setup model to work in training and validation mode
             if phase == "train":
                 model.train()
             else:
@@ -41,20 +64,36 @@ def fit_embedder(model=None, optimizer=None, scheduler=None, epochs=None, early_
             
             lossPerPass = []
 
+            # Iterate through the all the data in the dataloader
             for A, P, N in DLS[phase]:
+                # Transfer data on the device
                 A, P, N = A.to(u.DEVICE), P.to(u.DEVICE), N.to(u.DEVICE)
 
+                # Zero out all the gradients
                 optimizer.zero_grad()
+
+                # Set the tensor to use gradients only during the training phase
                 with torch.set_grad_enabled(phase == "train"):
+
+                    # Pass Triplet Input to the model and obtain a triplet output
                     op_A, op_P, op_N = model(A.squeeze(), P, N)
+
+                    # Calculate the loss
                     loss = criterion(op_A, op_P, op_N)
+
+                    # Backward pass and update optimizer during training phase
                     if phase == "train":
                         loss.backward()
                         optimizer.step()
                 lossPerPass.append(loss.item())
+            
+            # Track the per epoch training/validation loss
             epochLoss[phase] = np.mean(np.array(lossPerPass))
+        
+        # Store the Loss and History
         Losses.append(epochLoss)
 
+        # Perform Early Stopping
         if early_stopping_patience:
             if epochLoss["valid"] < bestLoss["valid"]:
                 bestLoss = epochLoss
@@ -69,6 +108,7 @@ def fit_embedder(model=None, optimizer=None, scheduler=None, epochs=None, early_
                     print("\nEarly Stopping at Epoch {}".format(e + 1))
                     break
         
+        # Keep track of the epoch validation loss; save a checkpoint only if condition is met
         if epochLoss["valid"] < bestLoss["valid"]:
             bestLoss = epochLoss
             BLE = e+1
@@ -78,6 +118,7 @@ def fit_embedder(model=None, optimizer=None, scheduler=None, epochs=None, early_
         if scheduler:
             scheduler.step(epochLoss["valid"])
         
+        # Verbose Output
         if verbose:
             u.myprint("Epoch: {} | Train Loss: {:.5f} | Valid Loss: {:.5f} | Time: {:.2f} seconds".format(e + 1, epochLoss["train"], epochLoss["valid"], time() - e_st), "cyan")
         
@@ -238,7 +279,18 @@ Valid Accs : {:.5f} | Time: {:.2f} seconds\n".format(e + 1,
 
 # ******************************************************************************************************************** #
 
-def train_embedder(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_size=None, fea_extractor=None):
+def train_embedder(part_name=None, model=None, epochs=None, lr=None, wd=None, batch_size=None, fea_extractor=None, early_stopping=None):
+    """
+        part_name      : Part name
+        model          : Siamese Network
+        epochs         : Number of training epochs
+        lr             : Learning Rate
+        wd             : Weight Decay
+        batch_size     : Batch Size used during training
+        fea_extractor  : Feature Extraction Model
+        early_stopping : Number of epochs without improvement after which to stop training
+    """
+
     base_path = os.path.join(u.DATASET_PATH, part_name)
     
     # Read the anchor image and obtain its features
@@ -272,7 +324,7 @@ def train_embedder(part_name=None, model=None, epochs=None, lr=None, wd=None, ba
     
     # Fit the Model
     L, BLE = fit_embedder(model=model, optimizer=optimizer, scheduler=None, epochs=epochs,
-                          early_stopping_patience=None, trainloader=tr_data, validloader=va_data, 
+                          early_stopping_patience=early_stopping, trainloader=tr_data, validloader=va_data, 
                           device=u.DEVICE, criterion=torch.nn.TripletMarginLoss(margin=1),
                           save_to_file=True, path=checkpoint_path, verbose=True)
 

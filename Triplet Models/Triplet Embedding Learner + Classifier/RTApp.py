@@ -214,7 +214,6 @@ def video(filename=None, part_name=None, model=None, save=False, show_prob=True,
             # Press 'q' to Quit
             if cv2.waitKey(u.DELAY) == ord("q"):
                 break
-        
         else:
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
