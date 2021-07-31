@@ -93,5 +93,3 @@ At the location where main.py/.exe exists,
 &nbsp;
 
 ---
-
-- TODO: Add in Proper Templates

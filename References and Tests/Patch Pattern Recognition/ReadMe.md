@@ -23,3 +23,16 @@
 &nbsp;
 
 ---
+
+## **Python Scripts Information**
+
+1. *cli.py* - Command Line Interface Implementation of the Application
+2. *Models.py* - Contains the Pytorch Deep Feature Extraction Model
+3. Processor.py - Contains the fucntion that split video feed into patches before processing
+4. *Snapshot.py* - Handles the capture of a frame from the webcam feed.
+5. *utils.py* - Contains Constants and Utility Functions used throughout the Application
+6. *main.py* - Entry Point into the Application
+
+&nbsp;
+
+---
