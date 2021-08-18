@@ -11,7 +11,7 @@ from torchvision import transforms, ops
 
 SIZE = 224
 SEGMENT_SIZE = 520
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
@@ -176,7 +176,7 @@ def decode(class_index_image=None):
 # ******************************************************************************************************************** #
 
 # Webcam Feed Attributes
-CAM_WIDTH, CAM_HEIGHT, FPS, ID = 640, 360, 30, 0
+CAM_WIDTH, CAM_HEIGHT, FPS, device_id = 640, 360, 30, 0
 
 SEGMENTATION_LABELS = ['__background__', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
  'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike',

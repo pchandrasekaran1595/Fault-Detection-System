@@ -37,7 +37,7 @@ def app():
     if args_4 in sys.argv:
         do_all = True
     if args_5 in sys.argv:
-        u.ID = int(sys.argv[sys.argv.index(args_5) + 1])
+        u.device_id = int(sys.argv[sys.argv.index(args_5) + 1])
     
     # Initialize model for classification
     if do_classify:
@@ -59,9 +59,9 @@ def app():
 
     # Setting up capture object
     if platform.system() != "Windows":
-        cap = cv2.VideoCapture(u.ID)
+        cap = cv2.VideoCapture(u.device_id)
     else:
-        cap = cv2.VideoCapture(u.ID, cv2.CAP_DSHOW)
+        cap = cv2.VideoCapture(u.device_id, cv2.CAP_DSHOW)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, u.CAM_HEIGHT)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, u.CAM_WIDTH)
     cap.set(cv2.CAP_PROP_FPS, u.FPS)
