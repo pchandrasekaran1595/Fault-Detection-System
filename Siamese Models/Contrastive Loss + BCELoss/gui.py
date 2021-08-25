@@ -415,8 +415,10 @@ class ButtonFrame(tk.Frame):
         u.breaker()
         u.myprint("Generating Feature Vector Data ...", "green")
         start_time = time()
-        make_data(part_name=self.part_name, cls="Positive", num_samples=u.num_samples, fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
-        make_data(part_name=self.part_name, cls="Negative", num_samples=u.num_samples, fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
+        make_data(part_name=self.part_name, cls="Positive", num_samples=u.num_samples, 
+                  fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
+        make_data(part_name=self.part_name, cls="Negative", num_samples=u.num_samples, 
+                  fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
         u.myprint("\nTime Taken [{}] : {:.2f} minutes".format(2*u.num_samples, (time()-start_time)/60), "green")
 
         # Initialize Siamese Network
@@ -432,7 +434,9 @@ class ButtonFrame(tk.Frame):
         self.master.destroy()
 
         # Start a new application window
-        setup(device_id=u.device_id, part_name=self.part_name, model=model, imgfilepath=os.path.join(self.path, "Snapshot_1.png"), adderstate=True, isResult=True)
+        setup(device_id=u.device_id, part_name=self.part_name, model=model, 
+              imgfilepath=os.path.join(self.path, "Snapshot_1.png"), adderstate=True, 
+              isResult=True)
 
     # Callback handling the Training
     def do_train(self):
@@ -451,15 +455,18 @@ class ButtonFrame(tk.Frame):
             # Generate the Feature Vector Dataset
             u.myprint("Generating Feature Vector Data ...", "green")
             start_time = time()
-            make_data(part_name=self.part_name, cls="Positive", num_samples=u.num_samples, fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
-            make_data(part_name=self.part_name, cls="Negative", num_samples=u.num_samples, fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
+            make_data(part_name=self.part_name, cls="Positive", num_samples=u.num_samples, 
+                      fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
+            make_data(part_name=self.part_name, cls="Negative", num_samples=u.num_samples, 
+                      fea_extractor=Models.fea_extractor, roi_extractor=Models.roi_extractor)
             u.myprint("\nTime Taken [{}] : {:.2f} minutes".format(2*u.num_samples, (time()-start_time)/60), "green")
 
             # Initialize Siamese Network
             model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
 
             # Train the Model
-            trainer(part_name=self.part_name, model=model, epochs=u.epochs, lr=lr, wd=wd, batch_size=batch_size, early_stopping=u.early_stopping_step, fea_extractor=Models.fea_extractor)
+            trainer(part_name=self.part_name, model=model, epochs=u.epochs, lr=lr, wd=wd, batch_size=batch_size, 
+                    early_stopping=u.early_stopping_step, fea_extractor=Models.fea_extractor)
 
             # Start the capture object; Maximize the Application
             self.VideoWidget.start()
@@ -484,7 +491,9 @@ class ButtonFrame(tk.Frame):
             model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
 
             # Start a new application window
-            setup(device_id=u.device_id, part_name=self.part_name, model=model, imgfilepath=os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Positive"), "Snapshot_1.png"), adderstate=True, isResult=True)
+            setup(device_id=u.device_id, part_name=self.part_name, model=model, 
+                  imgfilepath=os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Positive"), "Snapshot_1.png"), 
+                  adderstate=True, isResult=True)
         else:
             messagebox.showerror(title="Value Error", message="Enter a valid input")
             return

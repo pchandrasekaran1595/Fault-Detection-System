@@ -105,6 +105,7 @@ def dl_compare(image, similarity):
         # Preprocess frame with CLAHE (clipLimit:2, tileGridSize: (2, 2))
         frame = u.clahe_equ(frame)
         disp_frame = frame.copy()
+        frame = u.preprocess(frame)
 
         # Obtain the features from the current frame
         features_2 = model.get_features(frame)

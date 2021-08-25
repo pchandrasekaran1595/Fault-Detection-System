@@ -49,7 +49,7 @@ class Model(nn.Module):
     # Extract the features from an image passed as argument. 
     def get_features(self, image):
 
-        # load model onto the device
+        # Load model onto the device
         self.to(self.device)
 
         # Extract features

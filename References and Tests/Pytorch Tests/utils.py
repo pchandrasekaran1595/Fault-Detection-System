@@ -1,13 +1,9 @@
-"""
-    Scipt that hold constansts, fucntions used across various scripts, etc.
-"""
-
 import cv2
 import torch
 import numpy as np
 from torchvision import transforms, ops
 
-# ******************************************************************************************************************** #
+#########################################################################################################
 
 SIZE = 224
 SEGMENT_SIZE = 520
@@ -15,16 +11,12 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
-# Detector Transform
 DET_TRANSFORM = transforms.Compose([transforms.ToTensor(), ])
-
-# All other model transforms
 TRANSFORM = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),])
 
-# ******************************************************************************************************************** #
+#########################################################################################################
 
-# Center Crop Preprocessing (Reshape to 256x256, then center crop to 224x224)
-def preprocess(image, change_color_space=True):
+def preprocess(image, change_color_space=True) -> np.ndarray:
     if change_color_space:
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
     image = cv2.resize(src=image, dsize=(256, 256), interpolation=cv2.INTER_AREA)
@@ -33,8 +25,34 @@ def preprocess(image, change_color_space=True):
     return image[cy - 112:cy + 112, cx - 112:cx + 112, :]
 
 
-# Center Crop Preprocessing (Reshape to 592x592, then center crop to 520x520)
-def preprocess_segmenter(image, change_color_space=True):
+def preprocess_detector(image, change_color_space=True) -> np.ndarray:
+    if change_color_space:
+        image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
+    image = cv2.resize(src=image, dsize=(914, 914), interpolation=cv2.INTER_AREA)
+    h, w, _ = image.shape
+    cx, cy = w // 2, h // 2
+    return image[cy - 400:cy + 400, cx - 400:cx + 400, :]
+
+
+def preprocess_detector_320(image, change_color_space=True) -> np.ndarray:
+    if change_color_space:
+        image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
+    image = cv2.resize(src=image, dsize=(366, 366), interpolation=cv2.INTER_AREA)
+    h, w, _ = image.shape
+    cx, cy = w // 2, h // 2
+    return image[cy - 160:cy + 160, cx - 160:cx + 160, :]
+
+
+def preprocess_detector_300(image, change_color_space=True) -> np.ndarray:
+    if change_color_space:
+        image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
+    image = cv2.resize(src=image, dsize=(342, 342), interpolation=cv2.INTER_AREA)
+    h, w, _ = image.shape
+    cx, cy = w // 2, h // 2
+    return image[cy - 150:cy + 150, cx - 150:cx + 150, :]
+
+
+def preprocess_segmenter(image, change_color_space=True) -> np.ndarray:
     if change_color_space:
         image = cv2.cvtColor(src=image, code=cv2.COLOR_BGR2RGB)
     image = cv2.resize(src=image, dsize=(592, 592), interpolation=cv2.INTER_AREA)
@@ -42,121 +60,110 @@ def preprocess_segmenter(image, change_color_space=True):
     cx, cy = w // 2, h // 2
     return image[cy - 260:cy + 260, cx - 260:cx + 260, :]
 
-# ******************************************************************************************************************** #
 
-# Function to perform classification inference
-def classify(model, image):
+def downscale(image: np.ndarray, factor: int) -> np.ndarray:
+    h, w, _ = image.shape
+    return cv2.resize(src=image, dsize=(int(w/factor), int(h/factor)), interpolation=cv2.INTER_AREA)
+
+#########################################################################################################
+
+def classify(model, image) -> np.ndarray:
     temp_image = image.copy()
+    temp_image = preprocess(temp_image, change_color_space=True)
 
-    # Resize Image
-    temp_image = preprocess(temp_image, change_color_space=False)
-
-    # Perform Inference
     with torch.no_grad():
-        output = torch.argmax(model(TRANSFORM(image).to(DEVICE).unsqueeze(dim=0)), dim=1)[0]
+        output = torch.argmax(model(TRANSFORM(temp_image).to(DEVICE).unsqueeze(dim=0)), dim=1)[0]
     
-    # Add label to the image
     cv2.putText(img=image, text=CLASSIFIER_LABELS[int(output.item())], org=(50, 50),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1,
                 color=(0, 255, 0), thickness=2)
     return image
 
-# ******************************************************************************************************************** #
+#########################################################################################################
 
-# Function to perform detection inference (Best Bounding Box)
-def detect(model, image):
+def detect(model, image, size) -> np.ndarray:
     x1, y1, x2, y2 = None, None, None, None
 
     h, w, _ = image.shape
     temp_image = image.copy()
 
-    # Resize Image
-    temp_image = preprocess(temp_image, change_color_space=False)
+    if size == 800:
+        temp_image = preprocess_detector(temp_image, change_color_space=True)
+    elif size == 320:
+        temp_image = preprocess_detector_320(temp_image, change_color_space=True)
+    elif size == 300:
+        temp_image = preprocess_detector_300(temp_image, change_color_space=True)
 
-    # Perform Inference
     with torch.no_grad():
         output = model(DET_TRANSFORM(temp_image).to(DEVICE).unsqueeze(dim=0))[0]
     cnts, scrs, cls = output["boxes"], output["scores"], output["labels"]
 
-    # Add bounding boxes and class labels t o image only if bounding box exists
     if len(cnts) != 0:
-        cnts = ops.clip_boxes_to_image(cnts, (SIZE, SIZE))
+        cnts = ops.clip_boxes_to_image(cnts, (size, size))
         best_index = ops.nms(cnts, scrs, 0.1)[0]
-        x1, y1, x2, y2 = int(cnts[best_index][0] * (w / SIZE)), \
-                         int(cnts[best_index][1] * (h / SIZE)), \
-                         int(cnts[best_index][2] * (w / SIZE)), \
-                         int(cnts[best_index][3] * (h / SIZE))
+        x1, y1, x2, y2 = int(cnts[best_index][0] * (w / size)), \
+                         int(cnts[best_index][1] * (h / size)), \
+                         int(cnts[best_index][2] * (w / size)), \
+                         int(cnts[best_index][3] * (h / size))
         cv2.rectangle(img=image, pt1=(x1, y1), pt2=(x2, y2), color=(0, 255, 0), thickness=2)
         cv2.putText(img=image, text="{}".format(DETECTION_LABELS[cls[best_index]]), org=(50, 50),
                     fontScale=1, fontFace=cv2.FONT_HERSHEY_SIMPLEX, color=(0, 0, 255), thickness=2)
-    
-    # Runs if No bounding boxes are detected
     else:
         cv2.putText(img=image, text="--- No Objects Detected ---", org=(50, 50),
                     fontScale=1, fontFace=cv2.FONT_HERSHEY_SIMPLEX, color=(0, 0, 255), thickness=2)
     return image
 
-# ******************************************************************************************************************** #
+#########################################################################################################
 
-# Function to perform detection inference (All Bounding Boxes)
-def detect_all(model, image):
+def detect_all(model, image, size) -> np.ndarray:
     x1, y1, x2, y2 = None, None, None, None
 
     h, w, _ = image.shape
     temp_image = image.copy()
+    if size == 800:
+        temp_image = preprocess_detector(temp_image, change_color_space=True)
+    elif size == 320:
+        temp_image = preprocess_detector_320(temp_image, change_color_space=True)
+    elif size == 300:
+        temp_image = preprocess_detector_300(temp_image, change_color_space=True)
 
-    # Resize Image
-    temp_image = preprocess(temp_image, change_color_space=False)
-
-    # Perform Inference
     with torch.no_grad():
         output = model(DET_TRANSFORM(temp_image).to(DEVICE).unsqueeze(dim=0))[0]
     cnts, scrs, cls = output["boxes"], output["scores"], output["labels"]
 
-    # Add bounding boxes and class labels t o image only if bounding box exists
     if len(cnts) != 0:
-        cnts = ops.clip_boxes_to_image(cnts, (SIZE, SIZE))
+        cnts = ops.clip_boxes_to_image(cnts, (size, size))
         indexes = ops.nms(cnts, scrs, 0.1)
         
         for index in indexes:
-            x1, y1, x2, y2 = int(cnts[index][0] * (w / SIZE)), \
-                             int(cnts[index][1] * (h / SIZE)), \
-                             int(cnts[index][2] * (w / SIZE)), \
-                             int(cnts[index][3] * (h / SIZE))
+            x1, y1, x2, y2 = int(cnts[index][0] * (w / size)), \
+                             int(cnts[index][1] * (h / size)), \
+                             int(cnts[index][2] * (w / size)), \
+                             int(cnts[index][3] * (h / size))
             cv2.rectangle(img=image, pt1=(x1, y1), pt2=(x2, y2), color=(0, 255, 0), thickness=2)
             cv2.putText(img=image, text="{}".format(DETECTION_LABELS[cls[index]]), org=(x1+10, y1+10),
                         fontScale=1, fontFace=cv2.FONT_HERSHEY_SIMPLEX, color=(0, 0, 255), thickness=1)
-                    
-     # Runs if No bounding boxes are detected
     else:
         cv2.putText(img=image, text="--- No Objects Detected ---", org=(50, 50),
                     fontScale=1, fontFace=cv2.FONT_HERSHEY_SIMPLEX, color=(0, 0, 255), thickness=2)
     return image
 
-# ******************************************************************************************************************** #
+#########################################################################################################
 
-# Function to perform segmentation inference
-def segment(model, image):
+def segment(model, image) -> np.ndarray:
     h, w, _ = image.shape
     temp_image = image.copy()
+    temp_image = preprocess_segmenter(temp_image, change_color_space=True)
 
-   # Resize Image
-    temp_image = preprocess_segmenter(temp_image, change_color_space=False)
-
-    # Perform Inference
     with torch.no_grad():
-        output = model(TRANSFORM(image).to(DEVICE).unsqueeze(0))["out"][0]
+        output = model(TRANSFORM(temp_image).to(DEVICE).unsqueeze(0))["out"][0]
     
-    # Extract the class of each pixel
     class_index_image = torch.argmax(output, dim=0).detach().cpu().numpy()
-
-    # Return the color coded resize class image
     return cv2.resize(src=decode(class_index_image=class_index_image), dsize=(w, h), interpolation=cv2.INTER_AREA)
 
-# ******************************************************************************************************************** #
+#########################################################################################################
 
-# Function to perform Color Coding based on the class index image
-def decode(class_index_image=None):
+def decode(class_index_image=None) -> np.ndarray:
     colors = np.array([(0, 0, 0), (128, 0, 0), (0, 128, 0), (128, 128, 0), (0, 0, 128), (128, 0, 128),
                        (0, 128, 128), (128, 128, 128), (64, 0, 0), (192, 0, 0), (64, 128, 0),
                        (192, 128, 0), (64, 0, 128), (192, 0, 128), (64, 128, 128), (192, 128, 128),
@@ -173,10 +180,10 @@ def decode(class_index_image=None):
         b[indexes] = colors[i][2]
     return np.stack([r, g, b], axis=2)
 
-# ******************************************************************************************************************** #
+#########################################################################################################
 
-# Webcam Feed Attributes
 CAM_WIDTH, CAM_HEIGHT, FPS, device_id = 640, 360, 30, 0
+PATH = "./Files"
 
 SEGMENTATION_LABELS = ['__background__', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
  'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike',

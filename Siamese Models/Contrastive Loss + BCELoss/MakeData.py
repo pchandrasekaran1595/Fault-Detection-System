@@ -80,7 +80,6 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
         # Preallocate memory to hold features for each image in the directory
         mini_features = torch.zeros(num_samples_per_image, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
         features = torch.zeros(1, u.FEATURE_VECTOR_LENGTH).to(u.DEVICE)
-        
         for name in f_names:
 
             # Get the augmentation pipeline
@@ -88,7 +87,7 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
             dataset_augment, roi_augment = get_augments(augment_seed)
 
             # Read the image
-            image = u.preprocess(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), name), cv2.IMREAD_COLOR))
+            image = u.preprocess_320(cv2.imread(os.path.join(os.path.join(base_path, "Positive"), name), cv2.IMREAD_COLOR))
 
             # Obtain bounding box coordinates of the object
             x1, y1, x2, y2 = u.get_box_coordinates_make_data(roi_extractor, u.ROI_TRANSFORM, image)
@@ -115,6 +114,9 @@ def make_data(part_name=None, cls="Positive", num_samples=None, batch_size=48, f
 
             # Put back the RoI into the image
             image[y1:y2, x1:x2] = crp_img.squeeze()
+
+            # Resize image for usage with Feature Extractor
+            image = cv2.resize(src=image, dsize=(u.SIZE, u.SIZE), interpolation=cv2.INTER_AREA)
 
             # Augment the entire dataset using the dataset_augment pipeline
             images = np.array(dataset_augment(images=[image for _ in range(num_samples_per_image)]))

@@ -19,9 +19,9 @@ TEST : Create Dataset that uses all the Positive Directory Base Images as Anchor
 
 2. --embed       - Size of the new Embeddings
 
-3. --e-epochs    - Number opf training epochs for the embedding net
+3. --e-epochs    - Number of training epochs for the embedding net
 
-4. --c-epochs    - Number opf training epochs for the classifying net
+4. --c-epochs    - Number of training epochs for the classifying net
 
 5. --lower       - Lower Confidence Bound of the System
 

@@ -22,9 +22,6 @@ def build_models():
         def __init__(self):
             super(FeatureExtract, self).__init__()
 
-            # Size of Image expected by the model
-            self.size = 224
-
             # Device on which to run inference on. (This is now platform aware; will choose NVIDIA GPU if present, else will run on CPU)
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -41,7 +38,7 @@ def build_models():
             # Cut out the Adaptive Average Pool and Classifier
             self.model = nn.Sequential(*[*self.model.children()][:-2])
 
-             # Add in a new Adaptive Average Pool of size (2,2)
+            # Add in a new Adaptive Average Pool of size (2,2)
             self.model.add_module("Adaptive Avgpool", nn.AdaptiveAvgPool2d(output_size=(2, 2)))
 
             # Flatten final tensor (Final Size = (_, 2048))
@@ -54,8 +51,10 @@ def build_models():
 
         # Extract the features from an image passed as argument. 
         def get_features(self, image):
+            # Preprocess the image
+            image = u.preprocess(image)
 
-            # load model onto the device
+            # Load model onto the device
             self.to(self.device)
 
             # Extract features
@@ -70,6 +69,9 @@ def build_models():
     class RoIExtract(nn.Module):
         def __init__(self):
             super(RoIExtract, self).__init__()
+
+            # Size expected by the model
+            self.size = 320
 
             # Device on which to run inference on. (This is now platform aware; will choose NVIDIA GPU if present, else will run on CPU)
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -87,10 +89,18 @@ def build_models():
         # Extract the bounding boxes from image passed as argument
         def get_bboxes(self, image):
             h, w, _ = image.shape
+
+             # Preprocess the image
+            image = u.preprocess(image)
+
+            # Load model onto the device
             self.to(self.device)
+
             with torch.no_grad():
                 output = self(self.transform(image).to(self.device).unsqueeze(dim=0))[0]
             cnts, scrs = output["boxes"], output["scores"]
+
+            # Get the bounding box if an object is detected
             if len(cnts) != 0:
                 cnts = ops.clip_boxes_to_image(cnts, (self.size, self.size))
                 best_index = ops.nms(cnts, scrs, 0.1)[0]
@@ -137,10 +147,6 @@ def CosineDetector(image, clipLimit):
         _, frame = cap.read()
         frame = u.clahe_equ(frame, clipLimit=clipLimit)
         disp_frame = frame.copy()
-        frame = u.preprocess(frame, change_color_space=False)
-
-        # Apply CLAHE Preprocessing
-        frame = u.clahe_equ(frame, clipLimit=clipLimit)
         
         # Extract features from the ROI of the current frame
         x1, y1, x2, y2 = roi_extractor.get_bboxes(frame)

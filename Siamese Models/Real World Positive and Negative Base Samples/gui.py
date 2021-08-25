@@ -169,6 +169,8 @@ class VideoFrame(tk.Frame):
             self.model.load_state_dict(torch.load(self.model_path, map_location=u.DEVICE)["model_state_dict"])
             self.model.eval()
             self.model.to(u.DEVICE)
+
+            # Read the anchor image
             self.anchor = cv2.imread(os.path.join(os.path.join(os.path.join(u.DATASET_PATH, self.part_name), "Positive"), "Snapshot_1.png"), cv2.IMREAD_COLOR)
 
         # Setup the canvas and pack it into the frame
@@ -199,7 +201,10 @@ class VideoFrame(tk.Frame):
             frame = u.clahe_equ(frame)
             if ret:
                 h, w, _ = frame.shape
-                frame = cv2.rectangle(img=frame, pt1=(int(w/2) - 100, int(h/2) - 100), pt2=(int(w/2) + 100, int(h/2) + 100), color=(255, 255, 255), thickness=2)
+                frame = cv2.rectangle(img=frame, 
+                                      pt1=(int(w/2) - 100, int(h/2) - 100), 
+                                      pt2=(int(w/2) + 100, int(h/2) + 100), 
+                                      color=(255, 255, 255), thickness=2)
 
                 # Convert image from np.ndarray format into tkinter canvas compatible format and update
                 self.image = ImageTk.PhotoImage(Image.fromarray(frame))
@@ -424,7 +429,8 @@ class ButtonFrame(tk.Frame):
             model, _, _, _ = Models.build_siamese_model(embed=u.embed_layer_size)
 
             # Train the Model
-            trainer(part_name=self.part_name, model=model, epochs=u.epochs, lr=lr, wd=wd, batch_size=batch_size, early_stopping=u.early_stopping_step, fea_extractor=Models.fea_extractor)
+            trainer(part_name=self.part_name, model=model, epochs=u.epochs, lr=lr, wd=wd, batch_size=batch_size, 
+                    early_stopping=u.early_stopping_step, fea_extractor=Models.fea_extractor)
 
             # Start the capture object; Maximize the Application
             self.VideoWidget.start()

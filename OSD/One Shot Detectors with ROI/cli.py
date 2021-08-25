@@ -17,7 +17,7 @@ def app():
     args_2 = "--name"
     args_3 = "--cliplimit"
 
-    do_capture = None, None
+    do_capture = None
     name = "Snapshot_1.png"
     clipLimit = 2.0
 
@@ -31,7 +31,7 @@ def app():
     if do_capture:
         capture_snapshot(clipLimit)
     else:
-        image = u.preprocess(cv2.imread(os.path.join(u.IMAGE_PATH, name), cv2.IMREAD_COLOR))
+        image = cv2.imread(os.path.join(u.IMAGE_PATH, name), cv2.IMREAD_COLOR)
         CosineDetector(image, clipLimit)
 
 # ******************************************************************************************************************** #

@@ -6,8 +6,6 @@
 
 - Does not contain a CLI version
 
-&nbsp;
-
 ---
 
 &nbsp;
@@ -19,7 +17,7 @@
 
 2. --embed       - Size of the new Embeddings
 
-3. --epochs      - Number opf training epochs
+3. --epochs      - Number of training epochs
 
 4. --id          - Device ID of the capture device
 
